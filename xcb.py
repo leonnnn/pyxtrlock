@@ -31,10 +31,10 @@ class xcb_screen(Structure):
         ("root_depth", c_uint8),
         ("allowed_depths_len", c_uint8)
     ]
-        
+
 class xcb_screen_iterator(Structure):
     _fields_ = [
-        ("data", xcb_screen),
+        ("data", POINTER(xcb_screen)),
         ("rem", c_int),
         ("index", c_int)
     ]
@@ -56,10 +56,11 @@ setup = libxcb.xcb_get_setup(conn)
 libxcb.xcb_setup_roots_iterator.restype = xcb_screen_iterator
 iter_ = libxcb.xcb_setup_roots_iterator(setup)
 
-libxcb.xcb_screen_next(byref(iter_))
+while screen_num.value:
+    libxcb.xcb_screen_next(byref(iter_))
+    screen_num.value -= 1
 
-screen = iter_.data
-
+screen = iter_.data.contents
 print(screen.white_pixel)
 print(screen.width_in_pixels)
 print(screen.height_in_pixels)
