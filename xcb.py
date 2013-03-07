@@ -148,6 +148,15 @@ class GrabReply(Structure):
                                ','.join(str(getattr(self, field))
                                         for field, _ in self._fields_))
 
+class GenericEvent(Structure):
+    _fields_ = [
+        ("response_type", c_uint8),
+        ("pad0", c_uint8),
+        ("sequence", c_uint16),
+        ("pad", c_uint32 * 7),
+        ("full_sequence", c_uint32)
+    ]
+
 
 GrabKeyboardReply = GrabReply
 GrabPointerReply = GrabReply
@@ -160,14 +169,17 @@ Timestamp = c_uint32
 COPY_FROM_PARENT = 0
 WINDOW_CLASS_INPUT_ONLY = 2
 CW_OVERRIDE_REDIRECT = 512
+CW_EVENT_MASK = 2048
 
 EVENT_MASK_KEY_PRESS = 1
-EVENT_MASK_RELEASE_PRESS = 2
+EVENT_MASK_KEY_RELEASE = 2
 
 CURRENT_TIME = 0
 GRAB_MODE_ASYNC = 1
 
 WINDOW_NONE = 0
+
+KEY_PRESS = 2
 
 libxcb = cdll.LoadLibrary(find_library('xcb'))
 libxcb_screensaver = cdll.LoadLibrary(find_library('xcb-screensaver'))
@@ -381,14 +393,9 @@ def grab_pointer_sync(conn, owner_events, window, event_mask, ptr_mode,
         raise XCBError(error_p.contents)
     return ptr_grab
 
-# xcb_screensaver
-screensaver_select_input = libxcb_screensaver.xcb_screensaver_select_input
-screensaver_select_input.argtypes = [
-    POINTER(Connection),
-    Window,
-    c_uint32
-]
-screensaver_select_input.restype = VoidCookie
+wait_for_event = libxcb.xcb_wait_for_event
+wait_for_event.argtypes = [POINTER(Connection)]
+wait_for_event.restype = POINTER(GenericEvent)
 
 # xcb_image
 image_create_pixmap_from_bitmap_data = \

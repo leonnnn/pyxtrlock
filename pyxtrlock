@@ -3,8 +3,8 @@
 
 import sys
 import time
-from ctypes import byref
-from ctypes import c_int, c_uint32
+from ctypes import byref, cast
+from ctypes import POINTER, c_int, c_uint32
 
 import xcb
 
@@ -72,15 +72,12 @@ screen = iter_.data.contents
 # create window
 window = xcb.generate_id(conn)
 
+attribs = (c_uint32  * 2)(1, xcb.EVENT_MASK_KEY_PRESS)
 ret = xcb.create_window(conn, xcb.COPY_FROM_PARENT, window, screen.root,
                         0, 0, 100, 100, 0, xcb.WINDOW_CLASS_INPUT_ONLY,
                         xcb.VisualID(xcb.COPY_FROM_PARENT),
-                        xcb.CW_OVERRIDE_REDIRECT,
-                        byref(c_uint32(1)))
-
-# select input
-input_mask = xcb.EVENT_MASK_KEY_PRESS | xcb.EVENT_MASK_RELEASE_PRESS
-xcb.screensaver_select_input(conn, window, input_mask)
+                        xcb.CW_OVERRIDE_REDIRECT | xcb.CW_EVENT_MASK,
+                        cast(byref(attribs), POINTER(c_uint32)))
 
 print("window id {} hex {}".format(window.value, hex(window.value)))
 
@@ -138,6 +135,15 @@ else:
 
 xcb.flush(conn)
 
+# main event loop
+while True:
+    event = xcb.wait_for_event(conn).contents
+    print(event.response_type)
+    if event.response_type == xcb.KEY_PRESS:
+        print("key press")
+
+    print(event)
+    break
 
 time.sleep(10)
 
