@@ -5,10 +5,10 @@ pyxtrlock
 modern libraries, most importantly the obsolete direct passwd/shadow
 authentication has been replaced by today's
 [PAM](http://en.wikipedia.org/wiki/Pluggabe_authentication_module) authentication
-mechanism. Also, it's mostly written using [XCB](http://xcb.freedesktop.org/)
-instead of Xlib, although some Xlib/XCB interaction is still necessary. As soon
-as XCB can provide the required services of Xlib, the remaining code will be
-ported to XCB.
+mechanism, hence it also works on Fedora. Also, it's mostly written using
+[XCB](http://xcb.freedesktop.org/) instead of Xlib, although some Xlib/XCB
+interaction is still necessary. As soon as XCB can provide the required
+services of Xlib, the remaining code will be ported to XCB.
 
 Usage
 -----
