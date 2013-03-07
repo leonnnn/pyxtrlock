@@ -5,10 +5,10 @@ pyxtrlock
 modern libraries, most importantly the obsolete direct passwd/shadow
 authentication has been replaced by today's
 [PAM](http://en.wikipedia.org/wiki/Pluggabe_authentication_module) authentication
-mechanism. Also, it's mostly written using [XCB](http://xcb.freedesktop.org/)
-instead of Xlib, although some Xlib/XCB interaction is still necessary. As soon
-as XCB can provide the required services of Xlib, the remaining code will be
-ported to XCB.
+mechanism, hence it also works on Fedora. Also, it's mostly written using
+[XCB](http://xcb.freedesktop.org/) instead of Xlib, although some Xlib/XCB
+interaction is still necessary. As soon as XCB can provide the required
+services of Xlib, the remaining code will be ported to XCB.
 
 Usage
 -----
@@ -23,6 +23,9 @@ entry. You simply type your password at it, followed by Enter or Newline.
 Pressing Backspace or Delete erases one character of a password partially typed;
 pressing Escape or Clear clears anything that has been entered.
 
+Like xtrlock, pyxtrlock will ignore further keystrokes until a timeout has
+expired after too many attempts have been made in too short time.
+
 Installation
 ------------
 pyxtrlock requires [python3-pam](https://github.com/leonnnn/python3-pam). Make
@@ -32,7 +35,7 @@ After that, [download pyxtrlock from github](https://github.com/leonnnn/pyxtrloc
 and run ``python3 setup.py install`` as root. Once this is done, you should be
 able to simply lock your display by running
 
-    pyxtrlock 
+    $ pyxtrlock 
 
 Bugs
 ----
@@ -44,12 +47,6 @@ Requirements
 ------------
 * [python3-pam](https://github.com/leonnnn/python3-pam)
 * Python >= 3.0
-
-Todo
-----
-* Ring a bell if an incorrect password is entered
-* Timeout if no characters are entered for some time
-* Add timeout if too many attempts in too short time
 
 Authors
 -------
