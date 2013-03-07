@@ -7,6 +7,7 @@ from ctypes import byref, cast
 from ctypes import POINTER, c_int, c_uint32
 
 import xcb
+import X
 
 lock_width = 28
 lock_height = 40
@@ -51,9 +52,8 @@ mask_bits = bytes([
 ])
 
 
-screen_num = c_int()
-
-conn = xcb.connect(None, byref(screen_num))
+display = X.create_window(None)
+conn = X.get_xcb_connection(display)
 
 # TODO if !conn...
 
