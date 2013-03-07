@@ -87,10 +87,12 @@ print("window id {} hex {}".format(window.value, hex(window.value)))
 # create cursor
 csr_map = xcb.image_create_pixmap_from_bitmap_data(conn, window, lock_bits,
                                                    lock_width, lock_height,
-                                                   24, 0, 0, None)
+                                                   screen.root_depth,
+                                                   0, 0, None)
 csr_mask = xcb.image_create_pixmap_from_bitmap_data(conn, window, mask_bits,
                                                     mask_width, mask_height,
-                                                    24, 0, 0, None)
+                                                    screen.root_depth,
+                                                    0, 0, None)
 
 csr_fg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
                                     "steelblue3").contents
