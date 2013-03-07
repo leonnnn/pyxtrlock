@@ -3,8 +3,11 @@
 
 import sys
 import time
-from ctypes import byref, cast
+import getpass
+from ctypes import byref, cast, sizeof
 from ctypes import POINTER, c_int, c_uint32, c_char
+
+import pam
 
 import xcb
 import X
@@ -151,7 +154,10 @@ if not ic:
 X.set_ic_focus(ic)
 
 # main event loop
-while True:
+
+pwd = []
+
+for i in range(100):
     event = xcb.wait_for_event(conn)
     if event.contents.response_type == xcb.KEY_PRESS:
         xcb_key_press_event = cast(event, POINTER(xcb.KeyPressEvent)).contents
@@ -166,34 +172,49 @@ while True:
         x_key_press_event.time = xcb_key_press_event.time
         x_key_press_event.x = xcb_key_press_event.event_x
         x_key_press_event.y = xcb_key_press_event.event_y
-        x_key_press_event.root_x = xcb_key_press_event.root_x
-        x_key_press_event.root_y = xcb_key_press_event.root_y
+        x_key_press_event.y_root = xcb_key_press_event.root_y
         x_key_press_event.state = xcb_key_press_event.state
         x_key_press_event.same_screen = xcb_key_press_event.same_screen
+        x_key_press_event.keycode = xcb_key_press_event.detail
 
         status = X.Status()
         keysym = X.Keysym()
-        size = 5
+        size = 0
         buf = bytearray(size)
- 
+
         length = X.utf8_lookup_string(ic, byref(x_key_press_event),
-                                      cast((c_char * size).from_buffer(buf),
-                                           POINTER(c_char)),
-                                      size, byref(keysym), byref(status))
-        if status == X.BUFFER_OVERFLOW:
+                                      None, size, byref(keysym), byref(status))
+        if status.value == X.BUFFER_OVERFLOW:
             buf = bytearray(length)
+            buf_p = cast((c_char * length).from_buffer(buf), POINTER(c_char))
             length = X.utf8_lookup_string(ic, byref(x_key_press_event),
-                                       cast((c_char * length).from_buffer(buf),
-                                               POINTER(c_char)),
+                                          buf_p,
                                           length,
                                           byref(keysym), byref(status))
-        print(status)
-        if status == X.LOOKUP_BOTH or status == X.LOOKUP_CHARS:
-            print(bytes(buf[:length]))
-                                      
-        
-        
 
-time.sleep(10)
+        status = status.value
+        keysym = keysym.value
+        if status == X.LOOKUP_BOTH or status == X.LOOKUP_KEYSYM:
+            if keysym == X.K_Escape or keysym == X.K_Clear:
+                pwd = []
+                print("PW cleared")
+                continue
+            elif keysym == X.K_Delete or keysym == X.K_BackSpace:
+                if pwd:
+                    pwd.pop()
+                    print("Char deleted")
+                continue
+            elif keysym == X.K_LineFeed or keysym == X.K_Return:
+                if pam.authenticate(getpass.getuser(), b''.join(pwd)):
+                    print("Auth success")
+                    break
+                else:
+                    pwd = []
+                    print("Auth fail")
+                    continue
+
+        if status == X.LOOKUP_BOTH or status == X.LOOKUP_CHARS:
+            if length:
+                pwd.append(bytes(buf[:length]))
 
 xcb.disconnect(conn)

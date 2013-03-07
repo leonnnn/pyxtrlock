@@ -1,7 +1,7 @@
 from ctypes import *
 from ctypes.util import find_library
 
-from xcb import Connection, Window
+import xcb
 
 libx = cdll.LoadLibrary(find_library('X11-xcb'))
 
@@ -11,6 +11,7 @@ class Display(Structure):
 
 Time = c_ulong
 Bool = c_int
+Window = c_ulong
 
 class KeyEvent(Structure):
     _fields_ = [
@@ -27,12 +28,12 @@ class KeyEvent(Structure):
         ("x_root", c_int),
         ("y_root", c_int),
         ("state", c_uint),
-        ("key_code", c_uint),
+        ("keycode", c_uint),
         ("same_screen", Bool)
     ]
 
-Keysym = c_uint32
-Status = c_uint32
+Keysym = c_ulong
+Status = c_int
 
 
 # XXX evil :)
@@ -50,7 +51,7 @@ close_window.restype = c_int
 
 get_xcb_connection = libx.XGetXCBConnection
 get_xcb_connection.argtypes = [POINTER(Display)]
-get_xcb_connection.restype = POINTER(Connection)
+get_xcb_connection.restype = POINTER(xcb.Connection)
 
 open_IM = libx.XOpenIM
 open_IM.argtypes = [
@@ -92,3 +93,10 @@ LOOKUP_NONE = 1
 LOOKUP_CHARS = 2
 LOOKUP_KEYSYM = 3
 LOOKUP_BOTH = 4
+
+K_Escape = 0xff1b
+K_Clear = 0xff0b
+K_Delete = 0xffff
+K_BackSpace = 0xff08
+K_LineFeed = 0xff0a
+K_Return = 0xff0d
