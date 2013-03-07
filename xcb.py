@@ -251,9 +251,12 @@ def alloc_named_color_sync(conn, colormap, color_string):
 
     return res
 
+request_check = libxcb.xcb_request_check
+request_check.argtypes = [POINTER(Connection), VoidCookie]
+request_check.restype = POINTER(GenericError)
 
-create_cursor = libxcb.xcb_create_cursor
-create_cursor.argtypes = [
+create_cursor_checked = libxcb.xcb_create_cursor_checked
+create_cursor_checked.argtypes = [
     POINTER(Connection),    # connection
     Cursor,     # cursor
     Pixmap,     # source
@@ -267,7 +270,25 @@ create_cursor.argtypes = [
     c_uint16,   # x
     c_uint16    # y
 ]
-create_cursor.restype = VoidCookie
+create_cursor_checked.restype = VoidCookie
+
+def create_cursor_sync(conn, source, mask, fg, bg, x, y):
+    """
+    Synchronously create a cursor, including error checks.
+
+    Raises ``XCBError`` on failure. Otherwise returns ``Cursor``.
+    """
+    cursor = generate_id(conn)
+    cookie = create_cursor_checked(conn, cursor, source, mask,
+                                   fg.visual_red, fg.visual_green,
+                                   fg.visual_blue, bg.visual_red,
+                                   bg.visual_green, bg.visual_blue,
+                                   x, y)
+    error = request_check(conn, cookie)
+    if error:
+        raise XCBError(error.contents)
+
+    return cursor
 
 map_window = libxcb.xcb_map_window
 map_window.argtypes = [POINTER(Connection), Window]

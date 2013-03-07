@@ -97,11 +97,12 @@ csr_fg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
 csr_bg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
                                     "grey25").contents
 
-cursor = xcb.generate_id(conn)
-xcb.create_cursor(conn, cursor, csr_map, csr_mask,
-                  csr_fg.visual_red, csr_fg.visual_green, csr_fg.visual_blue,
-                  csr_bg.visual_red, csr_bg.visual_green, csr_bg.visual_blue,
-                  lock_x_hot, lock_y_hot)
+try:
+    cursor = xcb.create_cursor_sync(conn, csr_map, csr_mask, csr_fg, csr_bg,
+                                    lock_x_hot, lock_y_hot)
+except xcb.XCBError as e:
+    print("pyxtrlock: Could not create cursor", file=sys.stderr)
+    sys.exit(1)
 
 # map window
 xcb.map_window(conn, window)
