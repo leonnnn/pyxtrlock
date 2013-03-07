@@ -207,10 +207,6 @@ connect = libxcb.xcb_connect
 connect.argtypes = [c_char_p, POINTER(c_int)]
 connect.restype = POINTER(Connection)
 
-disconnect = libxcb.xcb_disconnect
-disconnect.argtypes = [POINTER(Connection)]
-disconnect.restype = None
-
 get_setup = libxcb.xcb_get_setup
 get_setup.argtypes = [POINTER(Connection)]
 get_setup.restype = POINTER(Setup)

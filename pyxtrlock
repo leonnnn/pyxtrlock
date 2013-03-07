@@ -213,4 +213,4 @@ for i in range(100):
             if length:
                 pwd.append(bytes(buf[:length]))
 
-xcb.disconnect(conn)
+X.close_window(display)
