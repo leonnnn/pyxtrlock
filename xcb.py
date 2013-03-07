@@ -120,10 +120,9 @@ class GenericError(Structure):
     ]
 
     def __str__(self):
-        print(self._fields_)
         return '{}({})'.format(self.__class__.__name__,
-                               ','.join(str(getattr(self, field[0]))
-                                        for field in self._fields_))
+                               ','.join(str(getattr(self, field))
+                                        for field, _ in self._fields_))
 
 class GenericID(c_uint32):
     pass
