@@ -91,9 +91,9 @@ csr_mask = xcb.image_create_pixmap_from_bitmap_data(conn, window, mask_bits,
                                                     mask_width, mask_height,
                                                     1, 0, 0, None)
 
-csr_fg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
-                                    "steelblue3").contents
 csr_bg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
+                                    "steelblue3").contents
+csr_fg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
                                     "grey25").contents
 
 try:
