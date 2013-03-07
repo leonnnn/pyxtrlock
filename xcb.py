@@ -84,11 +84,53 @@ class ImageFormat(c_int):
 class ImageOrder(c_int):
     pass
 
-Pixmap = c_uint32
 
-COPY_FROM_PARENT = c_uint8(0)
-WINDOW_CLASS_INPUT_ONLY = c_uint16(2)
-CW_OVERRIDE_REDIRECT = c_uint32(512)
+class AllocNamedColorCookie(Structure):
+    _fields_ = [
+        ("sequence", c_uint)
+    ]
+
+
+class AllocNamedColorReply(Structure):
+    _fields_ = [
+        ("response_type", c_uint8),
+        ("pad0", c_uint8),
+        ("sequence", c_uint16),
+        ("length", c_uint32),
+        ("pixel", c_uint32),
+        ("exact_red", c_uint16),
+        ("exact_green", c_uint16),
+        ("exact_blue", c_uint16),
+        ("visual_red", c_uint16),
+        ("visual_green", c_uint16),
+        ("visual_blue", c_uint16)
+    ]
+
+
+class GenericError(Structure):
+    _fields_ = [
+        ("response_type", c_uint8),
+        ("error_code", c_uint8),
+        ("sequence", c_uint16),
+        ("resource_id", c_uint32),
+        ("minor_code", c_uint16),
+        ("major_code", c_uint8),
+        ("pad0", c_uint8),
+        ("pad", c_uint32 * 5),
+        ("full_sequence", c_uint32)
+    ]
+
+
+class GenericID(c_uint32):
+    pass
+
+
+Pixmap = GenericID
+Cursor = GenericID
+
+COPY_FROM_PARENT = 0
+WINDOW_CLASS_INPUT_ONLY = 2
+CW_OVERRIDE_REDIRECT = 512
 
 EVENT_MASK_KEY_PRESS = 1
 EVENT_MASK_RELEASE_PRESS = 2
@@ -119,16 +161,84 @@ screen_next.restype = None
 
 generate_id = libxcb.xcb_generate_id
 generate_id.argtypes = [POINTER(Connection)]
-generate_id.restype = Window
+generate_id.restype = GenericID
 
 create_window = libxcb.xcb_create_window
 create_window.argtypes = [
-    POINTER(Connection), c_uint8, Window, Window, c_int16, c_int16,
-    c_uint16, c_uint16, c_uint16, c_uint16, VisualID, c_uint32,
-    POINTER(GetWindowAttributesReply)
+    POINTER(Connection),    # connection
+    c_uint8,    # depth
+    Window,     # wid
+    Window,     # parent
+    c_int16,    # x
+    c_int16,    # y
+    c_uint16,   # width
+    c_uint16,   # height
+    c_uint16,   # border_width
+    c_uint16,   # _class
+    VisualID,   # visual
+    c_uint32,   # value_mask
+    POINTER(c_uint32)   # value_lis
 ]
 create_window.restype = VoidCookie
 
+alloc_named_color = libxcb.xcb_alloc_named_color
+alloc_named_color.argtypes = [
+    POINTER(Connection),    # connection
+    Colormap,   # cmap
+    c_uint16,   # name len
+    c_char_p    # name
+]
+alloc_named_color.restype = AllocNamedColorCookie
+
+alloc_named_color_reply = libxcb.xcb_alloc_named_color_reply
+alloc_named_color_reply.argtypes = [
+    POINTER(Connection),    # connection
+    AllocNamedColorCookie,  # cookie
+    POINTER(POINTER(GenericError))  # e
+]
+alloc_named_color_reply.restype = POINTER(AllocNamedColorReply)
+
+
+def alloc_named_color_sync(conn, colormap, color_string):
+    """Synchronously allocate a named color
+
+    Wrapper function for xcb_alloc_named_color and alloc_named_color_reply
+    """
+    if isinstance(color_string, str):
+        color_string = color_string.encode('us-ascii')
+
+    # TODO handle errors properly
+    cookie = alloc_named_color(conn, colormap, len(color_string),
+                               color_string)
+    return alloc_named_color_reply(conn, cookie, None)
+
+
+create_cursor = libxcb.xcb_create_cursor
+create_cursor.argtypes = [
+    POINTER(Connection),    # connection
+    Cursor,     # cursor
+    Pixmap,     # source
+    Pixmap,     # mask
+    c_uint16,   # fore_red
+    c_uint16,   # fore_green
+    c_uint16,   # fore_blue
+    c_uint16,   # back_red 
+    c_uint16,   # back_green
+    c_uint16,   # back_blue
+    c_uint16,   # x
+    c_uint16    # y
+]
+create_cursor.restype = VoidCookie
+
+map_window = libxcb.xcb_map_window
+map_window.argtypes = [POINTER(Connection), Window]
+map_window.restype = VoidCookie
+
+flush = libxcb.xcb_flush
+flush.argtypes = [POINTER(Connection)]
+flush.restype = c_int
+
+# xcb_screensaver
 screensaver_select_input = libxcb_screensaver.xcb_screensaver_select_input
 screensaver_select_input.argtypes = [
     POINTER(Connection),
@@ -137,6 +247,7 @@ screensaver_select_input.argtypes = [
 ]
 screensaver_select_input.restype = VoidCookie
 
+# xcb_image
 image_create_pixmap_from_bitmap_data = \
     libxcb_image.xcb_create_pixmap_from_bitmap_data
 image_create_pixmap_from_bitmap_data.restype = Pixmap
