@@ -20,7 +20,7 @@ classifiers = [
 ]
 
 setup(name='pyxtrlock',
-      version='0.1alpha',
+      version='0.1beta',
       author=authors,
       author_email='leon@leonweber.de',
       requires=['pam'],
