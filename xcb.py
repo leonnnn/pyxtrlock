@@ -235,15 +235,21 @@ alloc_named_color_reply.restype = POINTER(AllocNamedColorReply)
 def alloc_named_color_sync(conn, colormap, color_string):
     """Synchronously allocate a named color
 
-    Wrapper function for xcb_alloc_named_color and alloc_named_color_reply
+    Wrapper function for xcb_alloc_named_color and alloc_named_color_reply.
+
+    Raises ``XCBError`` on errors.
     """
     if isinstance(color_string, str):
         color_string = color_string.encode('us-ascii')
 
-    # TODO handle errors properly
     cookie = alloc_named_color(conn, colormap, len(color_string),
                                color_string)
-    return alloc_named_color_reply(conn, cookie, None)
+    error_p = POINTER(GenericError)()
+    res = alloc_named_color_reply(conn, cookie, byref(error_p))
+    if error_p:
+        raise XCBError(error_p.contents)
+
+    return res
 
 
 create_cursor = libxcb.xcb_create_cursor
