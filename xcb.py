@@ -126,7 +126,7 @@ class GenericError(Structure):
 
     def __str__(self):
         return '{}({})'.format(self.__class__.__name__,
-                               ','.join(str(getattr(self, field))
+                               ','.join(field + '=' + str(getattr(self, field))
                                         for field, _ in self._fields_))
 
 
