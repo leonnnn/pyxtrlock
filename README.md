@@ -25,6 +25,9 @@ pressing Escape or Clear clears anything that has been entered.
 
 Installation
 ------------
+pyxtrlock requires [python3-pam](https://github.com/leonnnn/python3-pam). Make
+sure to install this package.
+
 Download the package, and run ``python3 setup.py install`` as root. Once this is
 done, you should be able to simply lock your display by running
 
@@ -34,11 +37,12 @@ Bugs
 ----
 Additional input devices other than the keyboard and mouse are not disabled.
 
+Please report any new bugs you may find to our [Github issue tracker](https://github.com/leonnnn/pyxtrlock/issues).
+
 Requirements
 ------------
 * [python3-pam](https://github.com/leonnnn/python3-pam)
 * Python >= 3.0
-
 
 Todo
 ----
