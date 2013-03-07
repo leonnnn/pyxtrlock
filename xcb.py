@@ -155,6 +155,28 @@ class GenericEvent(Structure):
         ("full_sequence", c_uint32)
     ]
 
+Keycode = c_uint8
+Timestamp = c_uint32
+
+class KeyPressEvent(Structure):
+    _fields_ = [
+        ("response_type", c_uint8),
+        ("detail", Keycode),
+        ("sequence", c_uint16),
+        ("time", Timestamp),
+        ("root", Window),
+        ("event", Window),
+        ("child", Window),
+        ("root_x", c_int16),
+        ("root_y", c_int16),
+        ("event_x", c_int16),
+        ("event_y", c_int16),
+        ("state", c_uint16),
+        ("same_screen", c_uint8),
+        ("pad0", c_uint8)
+    ]
+
+
 
 GrabKeyboardReply = GrabReply
 GrabPointerReply = GrabReply
@@ -162,7 +184,6 @@ GrabPointerReply = GrabReply
 
 Pixmap = GenericID
 Cursor = GenericID
-Timestamp = c_uint32
 
 COPY_FROM_PARENT = 0
 WINDOW_CLASS_INPUT_ONLY = 2

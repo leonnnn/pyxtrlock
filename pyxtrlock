@@ -4,7 +4,7 @@
 import sys
 import time
 from ctypes import byref, cast
-from ctypes import POINTER, c_int, c_uint32
+from ctypes import POINTER, c_int, c_uint32, c_char
 
 import xcb
 import X
@@ -56,6 +56,7 @@ display = X.create_window(None)
 conn = X.get_xcb_connection(display)
 
 # TODO if !conn...
+screen_num = c_int()
 
 print('screen {}'.format(screen_num.value))
 
@@ -135,15 +136,63 @@ else:
 
 xcb.flush(conn)
 
+# Prepare X Input
+im = X.open_IM(display, None, None, None)
+if not im:
+    print("pyxtrlock: Could not open Input Method", file=sys.stderr)
+    sys.exit(1)
+
+ic = X.create_IC(im, X.N_INPUT_STYLE,
+                 X.IM_PRE_EDIT_NOTHING | X.IM_STATUS_NOTHING, None)
+if not ic:
+    print("pyxtrlock: Could not open Input Context", file=sys.stderr)
+    sys.exit(1)
+
+X.set_ic_focus(ic)
+
 # main event loop
 while True:
-    event = xcb.wait_for_event(conn).contents
-    print(event.response_type)
-    if event.response_type == xcb.KEY_PRESS:
-        print("key press")
+    event = xcb.wait_for_event(conn)
+    if event.contents.response_type == xcb.KEY_PRESS:
+        xcb_key_press_event = cast(event, POINTER(xcb.KeyPressEvent)).contents
+        x_key_press_event = X.KeyEvent()
+        x_key_press_event.type = xcb_key_press_event.response_type
+        x_key_press_event.serial = xcb_key_press_event.sequence
+        x_key_press_event.send_event = 0
+        x_key_press_event.display = display
+        x_key_press_event.window = xcb_key_press_event.event
+        x_key_press_event.root = xcb_key_press_event.root
+        x_key_press_event.subwindow = xcb_key_press_event.child
+        x_key_press_event.time = xcb_key_press_event.time
+        x_key_press_event.x = xcb_key_press_event.event_x
+        x_key_press_event.y = xcb_key_press_event.event_y
+        x_key_press_event.root_x = xcb_key_press_event.root_x
+        x_key_press_event.root_y = xcb_key_press_event.root_y
+        x_key_press_event.state = xcb_key_press_event.state
+        x_key_press_event.same_screen = xcb_key_press_event.same_screen
 
-    print(event)
-    break
+        status = X.Status()
+        keysym = X.Keysym()
+        size = 5
+        buf = bytearray(size)
+ 
+        length = X.utf8_lookup_string(ic, byref(x_key_press_event),
+                                      cast((c_char * size).from_buffer(buf),
+                                           POINTER(c_char)),
+                                      size, byref(keysym), byref(status))
+        if status == X.BUFFER_OVERFLOW:
+            buf = bytearray(length)
+            length = X.utf8_lookup_string(ic, byref(x_key_press_event),
+                                       cast((c_char * length).from_buffer(buf),
+                                               POINTER(c_char)),
+                                          length,
+                                          byref(keysym), byref(status))
+        print(status)
+        if status == X.LOOKUP_BOTH or status == X.LOOKUP_CHARS:
+            print(bytes(buf[:length]))
+                                      
+        
+        
 
 time.sleep(10)
 
