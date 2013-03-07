@@ -70,10 +70,15 @@ class GetWindowAttributesReply(Structure):
     ]
 
 
-class VoidCookie(Structure):
+class Cookie(Structure):
     _fields_ = [
         ("sequence", c_uint)
     ]
+
+VoidCookie = Cookie
+AllocNamedColorCookie = Cookie
+GrabKeyboardCookie = Cookie
+GrabPointerCookie = Cookie
 
 
 # TODO?
@@ -83,12 +88,6 @@ class ImageFormat(c_int):
 
 class ImageOrder(c_int):
     pass
-
-
-class AllocNamedColorCookie(Structure):
-    _fields_ = [
-        ("sequence", c_uint)
-    ]
 
 
 class AllocNamedColorReply(Structure):
@@ -120,24 +119,33 @@ class GenericError(Structure):
         ("full_sequence", c_uint32)
     ]
 
+    def __str__(self):
+        print(self._fields_)
+        return '{}({})'.format(self.__class__.__name__,
+                               ','.join(str(getattr(self, field[0]))
+                                        for field in self._fields_))
 
 class GenericID(c_uint32):
     pass
 
 
-class GrabKeyboardCookie(Structure):
-    _fields_ = [
-        ("sequence", c_uint)
-    ]
 
-
-class GrabKeyboardReply(Structure):
+class GrabReply(Structure):
     _fields_ = [
         ("response_type", c_uint8),
         ("status", c_uint8),
         ("sequence", c_uint16),
         ("length", c_uint32)
     ]
+
+    def __str__(self):
+        return '{}({})'.format(self.__class__.__name__,
+                               ','.join(str(getattr(self, field))
+                                        for field, _ in self._fields_))
+
+
+GrabKeyboardReply = GrabReply
+GrabPointerReply = GrabReply
 
 
 Pixmap = GenericID
@@ -153,6 +161,8 @@ EVENT_MASK_RELEASE_PRESS = 2
 
 CURRENT_TIME = 0
 GRAB_MODE_ASYNC = 1
+
+WINDOW_NONE = 0
 
 libxcb = cdll.LoadLibrary(find_library('xcb'))
 libxcb_screensaver = cdll.LoadLibrary(find_library('xcb-screensaver'))
@@ -275,6 +285,28 @@ grab_keyboard_reply.argtypes = [
     POINTER(POINTER(GenericError))  # e
 ]
 grab_keyboard_reply.restype = POINTER(GrabKeyboardReply)
+
+grab_pointer = libxcb.xcb_grab_pointer
+grab_pointer.argtypes = [
+    POINTER(Connection),    # connection
+    c_uint8,    # owner_events
+    Window,     # grab_window
+    c_uint16,   # event_mask
+    c_uint8,    # pointer_mode
+    c_uint8,    # keyboard_mode
+    Window,     # confine_to
+    Cursor,     # cursor
+    Timestamp  # time
+]
+grab_pointer.restype = GrabPointerCookie
+
+grab_pointer_reply = libxcb.xcb_grab_pointer_reply
+grab_pointer_reply.argtypes = [
+    POINTER(Connection),    # connection
+    GrabPointerCookie,     # cookie,
+    POINTER(POINTER(GenericError))  # e
+]
+grab_pointer_reply.restype = POINTER(GrabPointerReply)
 
 # xcb_screensaver
 screensaver_select_input = libxcb_screensaver.xcb_screensaver_select_input

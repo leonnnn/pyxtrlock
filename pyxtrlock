@@ -83,7 +83,7 @@ xcb.screensaver_select_input(conn, window, mask)
 
 print("window id {} hex {}".format(window.value, hex(window.value)))
 
-# set cursor
+# create cursor
 csr_map = xcb.image_create_pixmap_from_bitmap_data(conn, window, lock_bits,
                                                    lock_width, lock_height,
                                                    24, 0, 0, None)
@@ -104,13 +104,21 @@ xcb.create_cursor(conn, cursor, csr_map, csr_mask,
 
 # map window
 xcb.map_window(conn, window)
-xcb.flush(conn)
 
 # Grab keyboard
 cookie = xcb.grab_keyboard(conn, 0, window, xcb.CURRENT_TIME,
                            xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
-grab = xcb.grab_keyboard_reply(conn, cookie, None)
+kbd_grab = xcb.grab_keyboard_reply(conn, cookie, None)
 
+# Grab pointer
+cookie = xcb.grab_pointer(conn, 0, window, 0, xcb.GRAB_MODE_ASYNC,
+                          xcb.GRAB_MODE_ASYNC, xcb.WINDOW_NONE, cursor,
+                          xcb.CURRENT_TIME)
+error_p = POINTER(xcb.GenericError)()
+ptr_grab = xcb.grab_pointer_reply(conn, cookie, byref(error_p))
+print(error_p.contents)
+print(ptr_grab.contents)
+xcb.flush(conn)
 
 #print("named color:", named_color)
 #for i in named_color.contents._fields_:
