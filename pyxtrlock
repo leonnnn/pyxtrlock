@@ -58,10 +58,11 @@ mask_bits = bytes([
 display = X.create_window(None)
 conn = X.get_xcb_connection(display)
 
-# TODO if !conn...
-screen_num = c_int()
+if not display:
+    print("pyxtrlock: Could not connect to X server", file=sys.stderr)
+    sys.exit(1)
 
-print('screen {}'.format(screen_num.value))
+screen_num = c_int()
 
 setup = xcb.get_setup(conn)
 
@@ -82,8 +83,6 @@ ret = xcb.create_window(conn, xcb.COPY_FROM_PARENT, window, screen.root,
                         xcb.VisualID(xcb.COPY_FROM_PARENT),
                         xcb.CW_OVERRIDE_REDIRECT | xcb.CW_EVENT_MASK,
                         cast(byref(attribs), POINTER(c_uint32)))
-
-print("window id {} hex {}".format(window.value, hex(window.value)))
 
 # create cursor
 csr_map = xcb.image_create_pixmap_from_bitmap_data(conn, window, lock_bits,
