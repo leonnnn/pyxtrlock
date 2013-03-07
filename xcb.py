@@ -222,7 +222,7 @@ create_cursor.argtypes = [
     c_uint16,   # fore_red
     c_uint16,   # fore_green
     c_uint16,   # fore_blue
-    c_uint16,   # back_red 
+    c_uint16,   # back_red
     c_uint16,   # back_green
     c_uint16,   # back_blue
     c_uint16,   # x
