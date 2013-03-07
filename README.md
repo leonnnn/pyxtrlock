@@ -10,6 +10,9 @@ mechanism, hence it also works on Fedora. Also, it's mostly written using
 interaction is still necessary. As soon as XCB can provide the required
 services of Xlib, the remaining code will be ported to XCB.
 
+Since pyxtrlock uses PAM authentication, it can be run as the normal user and
+doesn't need special privileges.
+
 Usage
 -----
 pyxtrlock, like its predecessor, is a very minimal X display lock program. While
