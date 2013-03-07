@@ -4,6 +4,11 @@ from ctypes import *
 from ctypes.util import find_library
 
 
+class XCBError(Exception):
+    """
+    Raised on XCBErrors
+    """
+
 class Connection(Structure):
     pass
 
@@ -306,6 +311,24 @@ grab_pointer_reply.argtypes = [
     POINTER(POINTER(GenericError))  # e
 ]
 grab_pointer_reply.restype = POINTER(GrabPointerReply)
+
+def grab_pointer_sync(conn, owner_events, window, event_mask, ptr_mode,
+                      kbd_mode, confine_to, cursor, timestamp):
+    """
+    Synchronously grab the pointing device.
+
+    Wrapper function for ``grab_pointer`` and ``grab_pointer_reply``.
+    Raises ``XCBError`` on error. Otherwise returns the result of
+    ``grab_pointer_reply``
+    """
+    owner_events = 1 if owner_events else 0
+    cookie = grab_pointer(conn, owner_events, window, event_mask, ptr_mode,
+                          kbd_mode, confine_to, cursor, timestamp)
+    error_p = POINTER(GenericError)()
+    ptr_grab = grab_pointer_reply(conn, cookie, byref(error_p))
+    if error_p:
+        raise XCBError(error_p.contents)
+    return ptr_grab
 
 # xcb_screensaver
 screensaver_select_input = libxcb_screensaver.xcb_screensaver_select_input

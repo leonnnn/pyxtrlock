@@ -3,6 +3,7 @@
 
 from ctypes import byref, pointer, POINTER
 from ctypes import c_int, c_uint32
+import sys
 
 import xcb
 
@@ -111,10 +112,16 @@ cookie = xcb.grab_keyboard(conn, 0, window, xcb.CURRENT_TIME,
 kbd_grab = xcb.grab_keyboard_reply(conn, cookie, None)
 
 # Grab pointer
-cookie = xcb.grab_pointer(conn, 0, window, 0, xcb.GRAB_MODE_ASYNC,
-                          xcb.GRAB_MODE_ASYNC, xcb.WINDOW_NONE, cursor,
-                          xcb.CURRENT_TIME)
-error_p = POINTER(xcb.GenericError)()
+try:
+    ptr_grab = xcb.grab_pointer_sync(conn, False, window, 0,
+                                     xcb.GRAB_MODE_ASYNC,
+                                     xcb.GRAB_MODE_ASYNC,
+                                     xcb.WINDOW_NONE, cursor,
+                                     xcb.CURRENT_TIME)
+except xcb.XCBError as e:
+    print("pyxtrlock: Could not grab pointing device", file=sys.stderr)
+    sys.exit(1)
+
 ptr_grab = xcb.grab_pointer_reply(conn, cookie, byref(error_p))
 print(error_p.contents)
 print(ptr_grab.contents)
