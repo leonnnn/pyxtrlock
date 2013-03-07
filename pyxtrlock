@@ -152,14 +152,24 @@ if not ic:
 
 X.set_ic_focus(ic)
 
+# timeout algorithm constants
+TIMEOUTPERATTEMPT = 30000
+MAXGOODWILL = TIMEOUTPERATTEMPT * 5
+INITIALGOODWILL = MAXGOODWILL
+GOODWILLPORTION = 0.3
+
 # main event loop
-
 pwd = []
-
+timeout = 0
+goodwill = INITIALGOODWILL
 while True:
     event = xcb.wait_for_event(conn)
     if event.contents.response_type == xcb.KEY_PRESS:
         xcb_key_press_event = cast(event, POINTER(xcb.KeyPressEvent)).contents
+        time_stamp = xcb_key_press_event.time
+        if time_stamp < timeout:
+            continue
+
         x_key_press_event = X.KeyEvent()
         x_key_press_event.type = xcb_key_press_event.response_type
         x_key_press_event.serial = xcb_key_press_event.sequence
@@ -206,6 +216,13 @@ while True:
                     break
                 else:
                     pwd = []
+                    if timeout:
+                        goodwill += time_stamp - timeout
+                        if goodwill > MAXGOODWILL:
+                            goodwill = MAXGODWILL
+                    timeout = -int(goodwill * GOODWILLPORTION)
+                    goodwill += timeout
+                    timeout += time_stamp + TIMEOUTPERATTEMPT
                     continue
 
         if status == X.LOOKUP_BOTH or status == X.LOOKUP_CHARS:
