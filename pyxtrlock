@@ -105,12 +105,17 @@ xcb.create_cursor(conn, cursor, csr_map, csr_mask,
 xcb.map_window(conn, window)
 xcb.flush(conn)
 
+# Grab keyboard
+cookie = xcb.grab_keyboard(conn, 0, window, xcb.CURRENT_TIME,
+                           xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
+grab = xcb.grab_keyboard_reply(conn, cookie, None)
+
 
 #print("named color:", named_color)
 #for i in named_color.contents._fields_:
 #    print("  {} = {}".format(i[0], getattr(named_color.contents, i[0])))
 
 import time
-time.sleep(100)
+time.sleep(10)
 
 xcb.disconnect(conn)
