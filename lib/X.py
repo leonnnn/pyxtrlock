@@ -1,7 +1,7 @@
 from ctypes import *
 from ctypes.util import find_library
 
-import xcb
+import pyxtrlock.xcb as xcb
 
 libx = cdll.LoadLibrary(find_library('X11-xcb'))
 
