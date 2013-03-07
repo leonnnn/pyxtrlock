@@ -156,7 +156,7 @@ X.set_ic_focus(ic)
 
 pwd = []
 
-for i in range(100):
+while True:
     event = xcb.wait_for_event(conn)
     if event.contents.response_type == xcb.KEY_PRESS:
         xcb_key_press_event = cast(event, POINTER(xcb.KeyPressEvent)).contents
