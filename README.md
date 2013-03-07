@@ -26,10 +26,11 @@ pressing Escape or Clear clears anything that has been entered.
 Installation
 ------------
 pyxtrlock requires [python3-pam](https://github.com/leonnnn/python3-pam). Make
-sure to install this package.
+sure to install this package before installing pyxtrlock.
 
-Download the package, and run ``python3 setup.py install`` as root. Once this is
-done, you should be able to simply lock your display by running
+After that, [download pyxtrlock from github](https://github.com/leonnnn/pyxtrlock),
+and run ``python3 setup.py install`` as root. Once this is done, you should be
+able to simply lock your display by running
 
     pyxtrlock 
 
