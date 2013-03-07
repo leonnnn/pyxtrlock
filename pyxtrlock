@@ -197,20 +197,16 @@ for i in range(100):
         if status == X.LOOKUP_BOTH or status == X.LOOKUP_KEYSYM:
             if keysym == X.K_Escape or keysym == X.K_Clear:
                 pwd = []
-                print("PW cleared")
                 continue
             elif keysym == X.K_Delete or keysym == X.K_BackSpace:
                 if pwd:
                     pwd.pop()
-                    print("Char deleted")
                 continue
             elif keysym == X.K_LineFeed or keysym == X.K_Return:
                 if pam.authenticate(getpass.getuser(), b''.join(pwd)):
-                    print("Auth success")
                     break
                 else:
                     pwd = []
-                    print("Auth fail")
                     continue
 
         if status == X.LOOKUP_BOTH or status == X.LOOKUP_CHARS:
