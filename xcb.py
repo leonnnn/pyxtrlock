@@ -129,9 +129,9 @@ class GenericError(Structure):
                                ','.join(str(getattr(self, field))
                                         for field, _ in self._fields_))
 
+
 class GenericID(c_uint32):
     pass
-
 
 
 class GrabReply(Structure):
@@ -289,6 +289,27 @@ grab_keyboard_reply.argtypes = [
     POINTER(POINTER(GenericError))  # e
 ]
 grab_keyboard_reply.restype = POINTER(GrabKeyboardReply)
+
+
+def grab_keyboard_sync(conn, owner_events, grab_window, time, ptr_mode,
+                       kbd_mode):
+    """
+    Synchronously grab the keyboard.
+
+    Wrapper function for grab_pointer and grab_pointer_reply.
+    Raises ``XCBError`` on error, otherwise returns ``GrabKeyboardReply``.
+    """
+    owner_events = 1 if owner_events else 0
+
+    cookie = grab_keyboard(conn, owner_events, grab_window, time, ptr_mode,
+                           kbd_mode)
+    error_p = POINTER(GenericError)()
+    kbd_grab = grab_keyboard_reply(conn, cookie, byref(error_p))
+
+    if error_p:
+        raise XCBError(error_p.contents)
+    return kbd_grab
+
 
 grab_pointer = libxcb.xcb_grab_pointer
 grab_pointer.argtypes = [

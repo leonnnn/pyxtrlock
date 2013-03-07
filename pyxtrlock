@@ -107,9 +107,12 @@ xcb.create_cursor(conn, cursor, csr_map, csr_mask,
 xcb.map_window(conn, window)
 
 # Grab keyboard
-cookie = xcb.grab_keyboard(conn, 0, window, xcb.CURRENT_TIME,
-                           xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
-kbd_grab = xcb.grab_keyboard_reply(conn, cookie, None)
+try:
+    kbd_grab = xcb.grab_keyboard_sync(conn, 0, window, xcb.CURRENT_TIME,
+                                      xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
+except xcb.XCBError as e:
+    print("pyxtrlock: Could not get grab keyboard", file=sys.stderr)
+    sys.exit(1)
 
 # Grab pointer
 try:
