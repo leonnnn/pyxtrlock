@@ -1,12 +1,14 @@
 pyxtrlock
 =========
 
-pyxtrlock is a rewrite of Ian Jackson's great xtrlock program using modern
-libraries, most importantly the obsolete direct passwd/shadow authentication
-has been replaced by today's PAM authentication mechanism. Also, it's mostly
-written using XCB instead of Xlib, although some Xlib/XCB interaction is
-still necessary. As soon as XCB can provide the required services of Xlib, the
-remaining code will be ported to XCB.
+``pyxtrlock`` is a rewrite of Ian Jackson's great ``xtrlock`` program using
+modern libraries, most importantly the obsolete direct passwd/shadow
+authentication has been replaced by today's
+[PAM](http://en.wikipedia.org/wiki/Pluggabe_authentication_module) authentication
+mechanism. Also, it's mostly written using [XCB](http://xcb.freedesktop.org/)
+instead of Xlib, although some Xlib/XCB interaction is still necessary. As soon
+as XCB can provide the required services of Xlib, the remaining code will be
+ported to XCB.
 
 Usage
 -----
@@ -51,8 +53,8 @@ Authors
 
 pyxtrlock has been inspired by
 [Ian Jacksons](http://www.chiark.greenend.org.uk/~ijackson/)'s brilliant
-``xtrlock`` program and uses many ideas and techniques from the ``xtrlock``
-source code.
+``xtrlock`` program and uses many ideas and techniques from the xtrlock
+source code. Also, the lock icon has been copied from xtrlock.
 
 License
 -------
