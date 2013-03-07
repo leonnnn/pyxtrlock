@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+# emacs this is -*-python-*-
+
+import sys
+import time
+import getpass
+from ctypes import byref, cast, sizeof
+from ctypes import POINTER, c_int, c_uint32, c_char
+
+import pam
+
+import pyxtrlock.xcb as xcb
+import pyxtrlock.X as X
+
+lock_width = 28
+lock_height = 40
+lock_x_hot = 14
+lock_y_hot = 21
+lock_bits = bytes([
+    0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xf8, 0xff, 0x7f, 0x00, 0xe0, 0xff,
+    0x3f, 0x00, 0xc0, 0xff, 0x1f, 0x00, 0x80, 0xff, 0x0f, 0xfc, 0x03, 0xff,
+    0x0f, 0xfe, 0x07, 0xff, 0x0f, 0xff, 0x0f, 0xff, 0x07, 0xff, 0x0f, 0xfe,
+    0x87, 0xff, 0x1f, 0xfe, 0x87, 0xff, 0x1f, 0xfe, 0x87, 0xff, 0x1f, 0xfe,
+    0x87, 0xff, 0x1f, 0xfe, 0x87, 0xff, 0x1f, 0xfe, 0x87, 0xff, 0x1f, 0xfe,
+    0x87, 0xff, 0x1f, 0xfe, 0x87, 0xff, 0x1f, 0xfe, 0x87, 0xff, 0x1f, 0xfe,
+    0x87, 0xff, 0x1f, 0xfe, 0x01, 0x00, 0x00, 0xf8, 0x01, 0x00, 0x00, 0xf8,
+    0x01, 0x00, 0x00, 0xf8, 0x01, 0x00, 0x00, 0xf8, 0x01, 0xf0, 0x00, 0xf8,
+    0x01, 0xf8, 0x01, 0xf8, 0x01, 0xf8, 0x01, 0xf8, 0x01, 0xf8, 0x01, 0xf8,
+    0x01, 0xf8, 0x01, 0xf8, 0x01, 0xf0, 0x00, 0xf8, 0x01, 0x60, 0x00, 0xf8,
+    0x01, 0x60, 0x00, 0xf8, 0x01, 0x60, 0x00, 0xf8, 0x01, 0x60, 0x00, 0xf8,
+    0x01, 0x60, 0x00, 0xf8, 0x01, 0x60, 0x00, 0xf8, 0x01, 0x00, 0x00, 0xf8,
+    0x01, 0x00, 0x00, 0xf8, 0x01, 0x00, 0x00, 0xf8, 0x01, 0x00, 0x00, 0xf8,
+    0xff, 0xff, 0xff, 0xff
+])
+
+mask_width = 28
+mask_height = 40
+mask_x_hot = 14
+mask_y_hot = 21
+mask_bits = bytes([
+    0x00, 0xfe, 0x07, 0x00, 0x80, 0xff, 0x1f, 0x00, 0xc0, 0xff, 0x3f, 0x00,
+    0xe0, 0xff, 0x7f, 0x00, 0xf0, 0xff, 0xff, 0x00, 0xf8, 0xff, 0xff, 0x01,
+    0xf8, 0x03, 0xfc, 0x01, 0xf8, 0x01, 0xf8, 0x01, 0xfc, 0x01, 0xf8, 0x03,
+    0xfc, 0x00, 0xf0, 0x03, 0xfc, 0x00, 0xf0, 0x03, 0xfc, 0x00, 0xf0, 0x03,
+    0xfc, 0x00, 0xf0, 0x03, 0xfc, 0x00, 0xf0, 0x03, 0xfc, 0x00, 0xf0, 0x03,
+    0xfc, 0x00, 0xf0, 0x03, 0xfc, 0x00, 0xf0, 0x03, 0xfc, 0x00, 0xf0, 0x03,
+    0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f,
+    0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f,
+    0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f,
+    0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f,
+    0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f,
+    0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f,
+    0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f, 0xff, 0xff, 0xff, 0x0f,
+    0xff, 0xff, 0xff, 0x0f
+])
+
+
+display = X.create_window(None)
+conn = X.get_xcb_connection(display)
+
+if not display:
+    print("pyxtrlock: Could not connect to X server", file=sys.stderr)
+    sys.exit(1)
+
+screen_num = c_int()
+
+setup = xcb.get_setup(conn)
+
+iter_ = xcb.setup_roots_iterator(setup)
+
+while screen_num.value:
+    xcb.screen_next(byref(iter_))
+    screen_num.value -= 1
+
+screen = iter_.data.contents
+
+# create window
+window = xcb.generate_id(conn)
+
+attribs = (c_uint32 * 2)(1, xcb.EVENT_MASK_KEY_PRESS)
+ret = xcb.create_window(conn, xcb.COPY_FROM_PARENT, window, screen.root,
+                        0, 0, 100, 100, 0, xcb.WINDOW_CLASS_INPUT_ONLY,
+                        xcb.VisualID(xcb.COPY_FROM_PARENT),
+                        xcb.CW_OVERRIDE_REDIRECT | xcb.CW_EVENT_MASK,
+                        cast(byref(attribs), POINTER(c_uint32)))
+
+# create cursor
+csr_map = xcb.image_create_pixmap_from_bitmap_data(conn, window, lock_bits,
+                                                   lock_width, lock_height,
+                                                   1, 0, 0, None)
+csr_mask = xcb.image_create_pixmap_from_bitmap_data(conn, window, mask_bits,
+                                                    mask_width, mask_height,
+                                                    1, 0, 0, None)
+
+csr_bg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
+                                    "steelblue3").contents
+csr_fg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
+                                    "grey25").contents
+
+try:
+    cursor = xcb.create_cursor_sync(conn, csr_map, csr_mask, csr_fg, csr_bg,
+                                    lock_x_hot, lock_y_hot)
+except xcb.XCBError as e:
+    print("pyxtrlock: Could not create cursor", file=sys.stderr)
+    sys.exit(1)
+
+# map window
+xcb.map_window(conn, window)
+
+# Grab keyboard
+try:
+    kbd_grab = xcb.grab_keyboard_sync(conn, 0, window, xcb.CURRENT_TIME,
+                                      xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
+except xcb.XCBError as e:
+    print("pyxtrlock: Could not get grab keyboard", file=sys.stderr)
+    sys.exit(1)
+
+# Grab pointer
+# Use the method from the original xtrlock code:
+#  "Sometimes the WM doesn't ungrab the keyboard quickly enough if
+#  launching xtrlock from a keystroke shortcut, meaning xtrlock fails
+#  to start We deal with this by waiting (up to 100 times) for 10,000
+#  microsecs and trying to grab each time. If we still fail
+#  (i.e. after 1s in total), then give up, and emit an error"
+for i in range(100):
+    try:
+        ptr_grab = xcb.grab_pointer_sync(conn, False, window, 0,
+                                         xcb.GRAB_MODE_ASYNC,
+                                         xcb.GRAB_MODE_ASYNC,
+                                         xcb.WINDOW_NONE, cursor,
+                                         xcb.CURRENT_TIME)
+        break
+    except xcb.XCBError as e:
+        time.sleep(0.01)
+else:
+    print("pyxtrlock: Could not grab pointing device", file=sys.stderr)
+    sys.exit(1)
+
+xcb.flush(conn)
+
+# Prepare X Input
+im = X.open_IM(display, None, None, None)
+if not im:
+    print("pyxtrlock: Could not open Input Method", file=sys.stderr)
+    sys.exit(1)
+
+ic = X.create_IC(im, X.N_INPUT_STYLE,
+                 X.IM_PRE_EDIT_NOTHING | X.IM_STATUS_NOTHING, None)
+if not ic:
+    print("pyxtrlock: Could not open Input Context", file=sys.stderr)
+    sys.exit(1)
+
+X.set_ic_focus(ic)
+
+# main event loop
+
+pwd = []
+
+while True:
+    event = xcb.wait_for_event(conn)
+    if event.contents.response_type == xcb.KEY_PRESS:
+        xcb_key_press_event = cast(event, POINTER(xcb.KeyPressEvent)).contents
+        x_key_press_event = X.KeyEvent()
+        x_key_press_event.type = xcb_key_press_event.response_type
+        x_key_press_event.serial = xcb_key_press_event.sequence
+        x_key_press_event.send_event = 0
+        x_key_press_event.display = display
+        x_key_press_event.window = xcb_key_press_event.event
+        x_key_press_event.root = xcb_key_press_event.root
+        x_key_press_event.subwindow = xcb_key_press_event.child
+        x_key_press_event.time = xcb_key_press_event.time
+        x_key_press_event.x = xcb_key_press_event.event_x
+        x_key_press_event.y = xcb_key_press_event.event_y
+        x_key_press_event.y_root = xcb_key_press_event.root_y
+        x_key_press_event.state = xcb_key_press_event.state
+        x_key_press_event.same_screen = xcb_key_press_event.same_screen
+        x_key_press_event.keycode = xcb_key_press_event.detail
+
+        status = X.Status()
+        keysym = X.Keysym()
+        size = 0
+        buf = bytearray(size)
+
+        length = X.utf8_lookup_string(ic, byref(x_key_press_event),
+                                      None, size, byref(keysym), byref(status))
+        if status.value == X.BUFFER_OVERFLOW:
+            buf = bytearray(length)
+            buf_p = cast((c_char * length).from_buffer(buf), POINTER(c_char))
+            length = X.utf8_lookup_string(ic, byref(x_key_press_event),
+                                          buf_p,
+                                          length,
+                                          byref(keysym), byref(status))
+
+        status = status.value
+        keysym = keysym.value
+        if status == X.LOOKUP_BOTH or status == X.LOOKUP_KEYSYM:
+            if keysym == X.K_Escape or keysym == X.K_Clear:
+                pwd = []
+                continue
+            elif keysym == X.K_Delete or keysym == X.K_BackSpace:
+                if pwd:
+                    pwd.pop()
+                continue
+            elif keysym == X.K_LineFeed or keysym == X.K_Return:
+                if pam.authenticate(getpass.getuser(), b''.join(pwd)):
+                    break
+                else:
+                    pwd = []
+                    continue
+
+        if status == X.LOOKUP_BOTH or status == X.LOOKUP_CHARS:
+            if length:
+                pwd.append(bytes(buf[:length]))
+
+X.close_window(display)
