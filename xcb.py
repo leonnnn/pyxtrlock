@@ -182,7 +182,6 @@ WINDOW_NONE = 0
 KEY_PRESS = 2
 
 libxcb = cdll.LoadLibrary(find_library('xcb'))
-libxcb_screensaver = cdll.LoadLibrary(find_library('xcb-screensaver'))
 libxcb_image = cdll.LoadLibrary(find_library('xcb-image'))
 
 connect = libxcb.xcb_connect
