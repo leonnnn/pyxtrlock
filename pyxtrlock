@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# emacs this is -*-python-*-
 
 from ctypes import byref, pointer, POINTER
 from ctypes import c_int, c_uint32
