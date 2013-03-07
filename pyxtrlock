@@ -3,7 +3,7 @@
 
 import sys
 import time
-from ctypes import byref, pointer, POINTER
+from ctypes import byref
 from ctypes import c_int, c_uint32
 
 import xcb
@@ -138,9 +138,6 @@ else:
 
 xcb.flush(conn)
 
-#print("named color:", named_color)
-#for i in named_color.contents._fields_:
-#    print("  {} = {}".format(i[0], getattr(named_color.contents, i[0])))
 
 time.sleep(10)
 
