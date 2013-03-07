@@ -5,6 +5,7 @@ import xcb
 
 libx = cdll.LoadLibrary(find_library('X11-xcb'))
 
+
 class Display(Structure):
     pass
 
@@ -12,6 +13,7 @@ class Display(Structure):
 Time = c_ulong
 Bool = c_int
 Window = c_ulong
+
 
 class KeyEvent(Structure):
     _fields_ = [

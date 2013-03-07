@@ -76,7 +76,7 @@ screen = iter_.data.contents
 # create window
 window = xcb.generate_id(conn)
 
-attribs = (c_uint32  * 2)(1, xcb.EVENT_MASK_KEY_PRESS)
+attribs = (c_uint32 * 2)(1, xcb.EVENT_MASK_KEY_PRESS)
 ret = xcb.create_window(conn, xcb.COPY_FROM_PARENT, window, screen.root,
                         0, 0, 100, 100, 0, xcb.WINDOW_CLASS_INPUT_ONLY,
                         xcb.VisualID(xcb.COPY_FROM_PARENT),
