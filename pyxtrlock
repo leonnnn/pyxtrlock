@@ -87,12 +87,10 @@ print("window id {} hex {}".format(window.value, hex(window.value)))
 # create cursor
 csr_map = xcb.image_create_pixmap_from_bitmap_data(conn, window, lock_bits,
                                                    lock_width, lock_height,
-                                                   screen.root_depth,
-                                                   0, 0, None)
+                                                   1, 0, 0, None)
 csr_mask = xcb.image_create_pixmap_from_bitmap_data(conn, window, mask_bits,
                                                     mask_width, mask_height,
-                                                    screen.root_depth,
-                                                    0, 0, None)
+                                                    1, 0, 0, None)
 
 csr_fg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
                                     "steelblue3").contents
@@ -128,9 +126,6 @@ except xcb.XCBError as e:
     print("pyxtrlock: Could not grab pointing device", file=sys.stderr)
     sys.exit(1)
 
-ptr_grab = xcb.grab_pointer_reply(conn, cookie, byref(error_p))
-print(error_p.contents)
-print(ptr_grab.contents)
 xcb.flush(conn)
 
 #print("named color:", named_color)
