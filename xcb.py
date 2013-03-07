@@ -9,6 +9,7 @@ class XCBError(Exception):
     Raised on XCBErrors
     """
 
+
 class Connection(Structure):
     pass
 
@@ -272,6 +273,7 @@ create_cursor_checked.argtypes = [
 ]
 create_cursor_checked.restype = VoidCookie
 
+
 def create_cursor_sync(conn, source, mask, fg, bg, x, y):
     """
     Synchronously create a cursor, including error checks.
@@ -359,6 +361,7 @@ grab_pointer_reply.argtypes = [
     POINTER(POINTER(GenericError))  # e
 ]
 grab_pointer_reply.restype = POINTER(GrabPointerReply)
+
 
 def grab_pointer_sync(conn, owner_events, window, event_mask, ptr_mode,
                       kbd_mode, confine_to, cursor, timestamp):

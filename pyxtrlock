@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # emacs this is -*-python-*-
 
+import sys
+import time
 from ctypes import byref, pointer, POINTER
 from ctypes import c_int, c_uint32
-import sys
 
 import xcb
 
@@ -115,13 +116,23 @@ except xcb.XCBError as e:
     sys.exit(1)
 
 # Grab pointer
-try:
-    ptr_grab = xcb.grab_pointer_sync(conn, False, window, 0,
-                                     xcb.GRAB_MODE_ASYNC,
-                                     xcb.GRAB_MODE_ASYNC,
-                                     xcb.WINDOW_NONE, cursor,
-                                     xcb.CURRENT_TIME)
-except xcb.XCBError as e:
+# Use the method from the original xtrlock code:
+#  "Sometimes the WM doesn't ungrab the keyboard quickly enough if
+#  launching xtrlock from a keystroke shortcut, meaning xtrlock fails
+#  to start We deal with this by waiting (up to 100 times) for 10,000
+#  microsecs and trying to grab each time. If we still fail
+#  (i.e. after 1s in total), then give up, and emit an error"
+for i in range(100):
+    try:
+        ptr_grab = xcb.grab_pointer_sync(conn, False, window, 0,
+                                         xcb.GRAB_MODE_ASYNC,
+                                         xcb.GRAB_MODE_ASYNC,
+                                         xcb.WINDOW_NONE, cursor,
+                                         xcb.CURRENT_TIME)
+        break
+    except xcb.XCBError as e:
+        time.sleep(0.01)
+else:
     print("pyxtrlock: Could not grab pointing device", file=sys.stderr)
     sys.exit(1)
 
@@ -131,7 +142,6 @@ xcb.flush(conn)
 #for i in named_color.contents._fields_:
 #    print("  {} = {}".format(i[0], getattr(named_color.contents, i[0])))
 
-import time
 time.sleep(10)
 
 xcb.disconnect(conn)
