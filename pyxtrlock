@@ -78,8 +78,8 @@ ret = xcb.create_window(conn, xcb.COPY_FROM_PARENT, window, screen.root,
                         byref(c_uint32(1)))
 
 # select input
-mask = xcb.EVENT_MASK_KEY_PRESS | xcb.EVENT_MASK_RELEASE_PRESS
-xcb.screensaver_select_input(conn, window, mask)
+input_mask = xcb.EVENT_MASK_KEY_PRESS | xcb.EVENT_MASK_RELEASE_PRESS
+xcb.screensaver_select_input(conn, window, input_mask)
 
 print("window id {} hex {}".format(window.value, hex(window.value)))
 
