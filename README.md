@@ -38,7 +38,18 @@ After that, [download pyxtrlock from github](https://github.com/leonnnn/pyxtrloc
 and run ``python3 setup.py install`` as root. Once this is done, you should be
 able to simply lock your display by running
 
-    $ pyxtrlock 
+    $ pyxtrlock
+
+To enable autolocking after a specified amount of idle time you can
+use the ``xautolock`` tool. Just add something like
+
+    xautolock -locker pyxtrlock -time 5
+
+to your X autostart file, to lock the screen with ``pyxtrlock`` after
+5 minutes idle time. ``xautolock`` has many other useful features, see
+its documentation. There does not seem to be a official ``xautolock``
+homepage that we can link for documentation, but most distris provide
+a ``xautolock`` package with a man page.
 
 Bugs
 ----
