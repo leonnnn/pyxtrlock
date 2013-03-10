@@ -62,7 +62,7 @@ Requirements
 * [python3-pam](https://github.com/leonnnn/python3-pam)
 * Python ≥ 3.0
 * libxcb
-* libX11 ≥ 1.5, or libX11 ≥ 1.2 compiled with XCB backend
+* libX11 ≥ 1.4, or libX11 ≥ 1.2 compiled with XCB backend
 
 These requirements are met on
 * Debian wheezy and sid, and probably on Debian squeeze (untested; please report your experience)
