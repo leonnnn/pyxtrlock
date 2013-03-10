@@ -60,14 +60,14 @@ Please report any new bugs you may find to our [Github issue tracker](https://gi
 Requirements
 ------------
 * [python3-pam](https://github.com/leonnnn/python3-pam)
-* Python >= 3.0
+* Python ≥ 3.0
 * libxcb
-* libX11 >= 1.5, or libX11 >= 1.2 compiled with XCB backend
+* libX11 ≥ 1.5, or libX11 ≥ 1.2 compiled with XCB backend
 
 These requirements are met on
 * Debian wheezy and sid, and probably on Debian squeeze (untested; please report your experience)
-* Ubuntu >= 11.10, and probably 10.04 (untested; please report your experience)
-* Fedora >= 17, probably 16
+* Ubuntu ≥ 11.10, and probably 10.04 (untested; please report your experience)
+* Fedora ≥ 17, probably 16
 
 Authors
 -------
