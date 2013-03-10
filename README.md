@@ -67,7 +67,7 @@ Requirements
 These requirements are met on
 * Debian wheezy and sid, and probably on Debian squeeze (untested; please report your experience)
 * Ubuntu ≥ 11.10, and probably 10.04 (untested; please report your experience)
-* Fedora ≥ 17, probably 16
+* Fedora ≥ 16
 
 Authors
 -------
