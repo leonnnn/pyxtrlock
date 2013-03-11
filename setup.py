@@ -28,6 +28,6 @@ setup(name='pyxtrlock',
       packages=['pyxtrlock'],
       scripts=['pyxtrlock'],
       license='GPLv3+',
-      url='https://github.com/leonnnn/pyxtrlock',
+      url='https://zombofant.net/hacking/pyxtrlock',
       classifiers=classifiers
 )
