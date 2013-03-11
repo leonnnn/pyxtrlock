@@ -29,5 +29,6 @@ setup(name='pyxtrlock',
       scripts=['pyxtrlock'],
       license='GPLv3+',
       url='https://zombofant.net/hacking/pyxtrlock',
+      description=desc,
       classifiers=classifiers
 )
