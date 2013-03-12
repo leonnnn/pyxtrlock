@@ -54,6 +54,13 @@ mask_bits = bytes([
     0xff, 0xff, 0xff, 0x0f
 ])
 
+if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
+    msg = (
+        "pyxtrlock: refusing to run as root. Use -f to force. Warning: You "
+        "might not be able to unlock."
+    )
+    print(msg, file=sys.stderr)
+    sys.exit(1)
 
 display = X.create_window(None)
 conn = X.get_xcb_connection(display)
