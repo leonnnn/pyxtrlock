@@ -203,10 +203,8 @@ while True:
         if status.value == X.BUFFER_OVERFLOW:
             buf = bytearray(length)
             buf_p = cast((c_char * length).from_buffer(buf), POINTER(c_char))
-            length = X.utf8_lookup_string(ic, byref(x_key_press_event),
-                                          buf_p,
-                                          length,
-                                          byref(keysym), byref(status))
+            length = X.utf8_lookup_string(ic, byref(x_key_press_event), buf_p,
+                                          length, byref(keysym), byref(status))
 
         status = status.value
         keysym = keysym.value
