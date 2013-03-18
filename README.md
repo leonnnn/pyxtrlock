@@ -31,10 +31,11 @@ expired after too many attempts have been made in too short time.
 
 Installation and Usage
 ----------------------
-Install [python3-pam](https://github.com/leonnnn/python3-pam) for dependencies:
+Install [python3-simplepam](https://github.com/leonnnn/python3-simplepam) for
+dependencies:
 
-    $ git clone git://github.com/leonnnn/python3-pam.git
-    $ cd python3-pam
+    $ git clone git://github.com/leonnnn/python3-simplepam.git
+    $ cd python3-simplepam
     $ sudo python3 setup.py install
 
 Clone and install pyxtrlock:
@@ -69,7 +70,7 @@ Please report any new bugs you may find to our [Github issue tracker](https://gi
 
 Requirements
 ------------
-* [python3-pam](https://github.com/leonnnn/python3-pam)
+* [python3-simplepam](https://github.com/leonnnn/python3-simplepam)
 * Python ≥ 3.0
 * libxcb
 * libX11 ≥ 1.4, or libX11 ≥ 1.2 compiled with XCB backend
