@@ -3,7 +3,8 @@ from ctypes.util import find_library
 
 import pyxtrlock.xcb as xcb
 
-libx = cdll.LoadLibrary(find_library('X11-xcb'))
+libx_xcb = cdll.LoadLibrary(find_library('X11-xcb'))
+libx = cdll.LoadLibrary(find_library('X11'))
 
 
 class Display(Structure):
@@ -51,7 +52,7 @@ close_window = libx.XCloseDisplay
 close_window.argtypes = [POINTER(Display)]
 close_window.restype = c_int
 
-get_xcb_connection = libx.XGetXCBConnection
+get_xcb_connection = libx_xcb.XGetXCBConnection
 get_xcb_connection.argtypes = [POINTER(Display)]
 get_xcb_connection.restype = POINTER(xcb.Connection)
 

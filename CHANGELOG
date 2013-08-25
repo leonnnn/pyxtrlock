@@ -1,0 +1,4 @@
+Release 0.1:
+• [#8] Security: Fixed a typo that could in some circumstances lead to a
+       crash after multiple failed authentication attempts. Thanks,
+       Paul Lhussiez.

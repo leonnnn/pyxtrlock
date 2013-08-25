@@ -7,7 +7,7 @@ import getpass
 from ctypes import byref, cast, sizeof
 from ctypes import POINTER, c_int, c_uint32, c_char
 
-import pam
+import simplepam as pam
 
 import pyxtrlock.xcb as xcb
 import pyxtrlock.X as X
@@ -54,6 +54,13 @@ mask_bits = bytes([
     0xff, 0xff, 0xff, 0x0f
 ])
 
+if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
+    msg = (
+        "pyxtrlock: refusing to run as root. Use -f to force. Warning: You "
+        "might not be able to unlock."
+    )
+    print(msg, file=sys.stderr)
+    sys.exit(1)
 
 display = X.create_window(None)
 conn = X.get_xcb_connection(display)
@@ -79,7 +86,7 @@ window = xcb.generate_id(conn)
 
 attribs = (c_uint32 * 2)(1, xcb.EVENT_MASK_KEY_PRESS)
 ret = xcb.create_window(conn, xcb.COPY_FROM_PARENT, window, screen.root,
-                        0, 0, 100, 100, 0, xcb.WINDOW_CLASS_INPUT_ONLY,
+                        0, 0, 1, 1, 0, xcb.WINDOW_CLASS_INPUT_ONLY,
                         xcb.VisualID(xcb.COPY_FROM_PARENT),
                         xcb.CW_OVERRIDE_REDIRECT | xcb.CW_EVENT_MASK,
                         cast(byref(attribs), POINTER(c_uint32)))
@@ -196,10 +203,8 @@ while True:
         if status.value == X.BUFFER_OVERFLOW:
             buf = bytearray(length)
             buf_p = cast((c_char * length).from_buffer(buf), POINTER(c_char))
-            length = X.utf8_lookup_string(ic, byref(x_key_press_event),
-                                          buf_p,
-                                          length,
-                                          byref(keysym), byref(status))
+            length = X.utf8_lookup_string(ic, byref(x_key_press_event), buf_p,
+                                          length, byref(keysym), byref(status))
 
         status = status.value
         keysym = keysym.value
@@ -219,7 +224,7 @@ while True:
                     if timeout:
                         goodwill += time_stamp - timeout
                         if goodwill > MAXGOODWILL:
-                            goodwill = MAXGODWILL
+                            goodwill = MAXGOODWILL
                     timeout = -int(goodwill * GOODWILLPORTION)
                     goodwill += timeout
                     timeout += time_stamp + TIMEOUTPERATTEMPT

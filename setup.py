@@ -9,6 +9,19 @@ desc = (
     'The X transparent screen lock rewritten in Python, using XCB and PAM.'
 )
 
+long_desc = """
+pyxtrlock -- The leightweight screen locker rewritten in Python
+---------------------------------------------------------------
+
+pyxtrlock is a very limited transparent X screen locker inspired by Ian
+Jackson’s great xtrlock program. pyxtrlock uses modern libraries, most
+importantly the obsolete direct passwd/shadow authentication has been replaced
+by today’s PAM authentication mechanism, hence it also works on Fedora. Also,
+it’s mostly written using XCB instead of Xlib.
+
+"""
+
+
 classifiers = [
     'Development Status :: 3',
     'Environment :: X11 Applications',
@@ -20,14 +33,16 @@ classifiers = [
 ]
 
 setup(name='pyxtrlock',
-      version='0.1beta',
+      version='0.1',
       author=authors,
       author_email='leon@leonweber.de',
-      requires=['pam'],
+      requires=['simplepam'],
       package_dir={'pyxtrlock': 'lib'},
       packages=['pyxtrlock'],
       scripts=['pyxtrlock'],
       license='GPLv3+',
-      url='https://github.com/leonnnn/pyxtrlock',
+      url='https://zombofant.net/hacking/pyxtrlock',
+      description=desc,
+      long_description=long_desc,
       classifiers=classifiers
 )
