@@ -224,7 +224,7 @@ while True:
                     if timeout:
                         goodwill += time_stamp - timeout
                         if goodwill > MAXGOODWILL:
-                            goodwill = MAXGODWILL
+                            goodwill = MAXGOODWILL
                     timeout = -int(goodwill * GOODWILLPORTION)
                     goodwill += timeout
                     timeout += time_stamp + TIMEOUTPERATTEMPT
