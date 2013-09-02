@@ -428,16 +428,16 @@ class LockMaker(object):
 
 
         # stroke vertically
-        for i in self.width:
+        for i in range(self.width):
             in_img = False
-            for j in self.height:
+            for j in range(self.height):
                 in_img = action(i, j, 1, 0, in_img)
             finish(i-1, j, in_img)
 
         # stroke horizontally
-        for j in self.height:
+        for j in range(self.height):
             in_img = False
-            for i in self.width:
+            for i in range(self.width):
                 in_img = action(i, j, 0, 1, in_img)
             finish(i, j-1, in_img)
 
