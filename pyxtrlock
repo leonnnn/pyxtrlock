@@ -111,6 +111,7 @@ xcb.map_window(conn, window)
 try:
     kbd_grab = xcb.grab_keyboard_sync(conn, 0, window, xcb.CURRENT_TIME,
                                       xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
+    xcb.free(kbd_grab)
 except xcb.XCBError as e:
     print("pyxtrlock: Could not get grab keyboard", file=sys.stderr)
     sys.exit(1)
@@ -129,6 +130,7 @@ for i in range(100):
                                          xcb.GRAB_MODE_ASYNC,
                                          xcb.WINDOW_NONE, cursor,
                                          xcb.CURRENT_TIME)
+        xcb.free(ptr_grab)
         break
     except xcb.XCBError as e:
         time.sleep(0.01)
@@ -163,68 +165,71 @@ pwd = []
 timeout = 0
 goodwill = INITIALGOODWILL
 while True:
-    event = xcb.wait_for_event(conn)
-    if event.contents.response_type == xcb.KEY_PRESS:
-        xcb_key_press_event = cast(event, POINTER(xcb.KeyPressEvent)).contents
-        time_stamp = xcb_key_press_event.time
-        if time_stamp < timeout:
-            continue
-
-        x_key_press_event = X.KeyEvent()
-        x_key_press_event.type = xcb_key_press_event.response_type
-        x_key_press_event.serial = xcb_key_press_event.sequence
-        x_key_press_event.send_event = 0
-        x_key_press_event.display = display
-        x_key_press_event.window = xcb_key_press_event.event
-        x_key_press_event.root = xcb_key_press_event.root
-        x_key_press_event.subwindow = xcb_key_press_event.child
-        x_key_press_event.time = xcb_key_press_event.time
-        x_key_press_event.x = xcb_key_press_event.event_x
-        x_key_press_event.y = xcb_key_press_event.event_y
-        x_key_press_event.y_root = xcb_key_press_event.root_y
-        x_key_press_event.state = xcb_key_press_event.state
-        x_key_press_event.same_screen = xcb_key_press_event.same_screen
-        x_key_press_event.keycode = xcb_key_press_event.detail
-
-        status = X.Status()
-        keysym = X.Keysym()
-        size = 0
-        buf = bytearray(size)
-
-        length = X.utf8_lookup_string(ic, byref(x_key_press_event),
-                                      None, size, byref(keysym), byref(status))
-        if status.value == X.BUFFER_OVERFLOW:
-            buf = bytearray(length)
-            buf_p = cast((c_char * length).from_buffer(buf), POINTER(c_char))
-            length = X.utf8_lookup_string(ic, byref(x_key_press_event), buf_p,
-                                          length, byref(keysym), byref(status))
-
-        status = status.value
-        keysym = keysym.value
-        if status == X.LOOKUP_BOTH or status == X.LOOKUP_KEYSYM:
-            if keysym == X.K_Escape or keysym == X.K_Clear:
-                pwd = []
+    with xcb.wait_for_event(conn) as event:
+        if event.contents.response_type == xcb.KEY_PRESS:
+            xcb_key_press_event = cast(event,
+                                       POINTER(xcb.KeyPressEvent)).contents
+            time_stamp = xcb_key_press_event.time
+            if time_stamp < timeout:
                 continue
-            elif keysym == X.K_Delete or keysym == X.K_BackSpace:
-                if pwd:
-                    pwd.pop()
-                continue
-            elif keysym == X.K_LineFeed or keysym == X.K_Return:
-                if pam.authenticate(getpass.getuser(), b''.join(pwd)):
-                    break
-                else:
+
+            x_key_press_event = X.KeyEvent()
+            x_key_press_event.type = xcb_key_press_event.response_type
+            x_key_press_event.serial = xcb_key_press_event.sequence
+            x_key_press_event.send_event = 0
+            x_key_press_event.display = display
+            x_key_press_event.window = xcb_key_press_event.event
+            x_key_press_event.root = xcb_key_press_event.root
+            x_key_press_event.subwindow = xcb_key_press_event.child
+            x_key_press_event.time = xcb_key_press_event.time
+            x_key_press_event.x = xcb_key_press_event.event_x
+            x_key_press_event.y = xcb_key_press_event.event_y
+            x_key_press_event.y_root = xcb_key_press_event.root_y
+            x_key_press_event.state = xcb_key_press_event.state
+            x_key_press_event.same_screen = xcb_key_press_event.same_screen
+            x_key_press_event.keycode = xcb_key_press_event.detail
+
+            status = X.Status()
+            keysym = X.Keysym()
+            size = 0
+            buf = bytearray(size)
+
+            length = X.utf8_lookup_string(ic, byref(x_key_press_event), None,
+                                          size, byref(keysym), byref(status))
+            if status.value == X.BUFFER_OVERFLOW:
+                buf = bytearray(length)
+                buf_p = cast((c_char * length).from_buffer(buf),
+                             POINTER(c_char))
+                length = X.utf8_lookup_string(ic, byref(x_key_press_event),
+                                              buf_p, length, byref(keysym),
+                                              byref(status))
+
+            status = status.value
+            keysym = keysym.value
+            if status == X.LOOKUP_BOTH or status == X.LOOKUP_KEYSYM:
+                if keysym == X.K_Escape or keysym == X.K_Clear:
                     pwd = []
-                    if timeout:
-                        goodwill += time_stamp - timeout
-                        if goodwill > MAXGOODWILL:
-                            goodwill = MAXGOODWILL
-                    timeout = -int(goodwill * GOODWILLPORTION)
-                    goodwill += timeout
-                    timeout += time_stamp + TIMEOUTPERATTEMPT
                     continue
+                elif keysym == X.K_Delete or keysym == X.K_BackSpace:
+                    if pwd:
+                        pwd.pop()
+                    continue
+                elif keysym == X.K_LineFeed or keysym == X.K_Return:
+                    if pam.authenticate(getpass.getuser(), b''.join(pwd)):
+                        break
+                    else:
+                        pwd = []
+                        if timeout:
+                            goodwill += time_stamp - timeout
+                            if goodwill > MAXGOODWILL:
+                                goodwill = MAXGOODWILL
+                        timeout = -int(goodwill * GOODWILLPORTION)
+                        goodwill += timeout
+                        timeout += time_stamp + TIMEOUTPERATTEMPT
+                        continue
 
-        if status == X.LOOKUP_BOTH or status == X.LOOKUP_CHARS:
-            if length:
-                pwd.append(bytes(buf[:length]))
+            if status == X.LOOKUP_BOTH or status == X.LOOKUP_CHARS:
+                if length:
+                    pwd.append(bytes(buf[:length]))
 
 X.close_window(display)

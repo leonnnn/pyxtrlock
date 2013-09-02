@@ -216,6 +216,7 @@ KEY_PRESS = 2
 
 libxcb = cdll.LoadLibrary(find_library('xcb'))
 libxcb_image = cdll.LoadLibrary(find_library('xcb-image'))
+libc = cdll.LoadLibrary(find_library('c'))
 
 connect = libxcb.xcb_connect
 connect.argtypes = [c_char_p, POINTER(c_int)]
@@ -304,11 +305,14 @@ def alloc_named_color_sync(conn, colormap, color_string):
     cookie = alloc_named_color(conn, colormap, len(color_string),
                                color_string)
     error_p = POINTER(GenericError)()
-    res = alloc_named_color_reply(conn, cookie, byref(error_p)).contents
+    res = alloc_named_color_reply(conn, cookie, byref(error_p))
     if error_p:
         raise XCBError(error_p.contents)
 
-    return (res.visual_red, res.visual_green, res.visual_blue)
+    ret = (res.contents.visual_red, res.contents.visual_green,
+           res.contents.visual_blue)
+    free(res)
+    return ret
 
 def alloc_color_sync(conn, colormap, r, g, b):
     """Synchronously allocate a color
@@ -330,11 +334,13 @@ def alloc_color_sync(conn, colormap, r, g, b):
 
     cookie = alloc_color(conn, colormap, r, g, b)
     error_p = POINTER(GenericError)()
-    res = alloc_color_reply(conn, cookie, byref(error_p)).contents
+    res = alloc_color_reply(conn, cookie, byref(error_p))
     if error_p:
         raise XCBERror(error_p.contents)
 
-    return (res.red, res.blue, res.green)
+    ret = (res.contents.red, res.contents.blue, res.contents.green)
+    free(res)
+    return ret
 
 request_check = libxcb.xcb_request_check
 request_check.argtypes = [POINTER(Connection), VoidCookie]
@@ -463,9 +469,28 @@ def grab_pointer_sync(conn, owner_events, window, event_mask, ptr_mode,
         raise XCBError(error_p.contents)
     return ptr_grab
 
-wait_for_event = libxcb.xcb_wait_for_event
-wait_for_event.argtypes = [POINTER(Connection)]
-wait_for_event.restype = POINTER(GenericEvent)
+wait_for_event_ = libxcb.xcb_wait_for_event
+wait_for_event_.argtypes = [POINTER(Connection)]
+wait_for_event_.restype = POINTER(GenericEvent)
+
+free = libc.free
+free.argtypes = [c_void_p]
+free.restype = None
+
+class FreeWrapper(object):
+
+    def __init__(self, pointer):
+        self.pointer = pointer
+
+    def __enter__(self):
+        return self.pointer
+
+    def __exit__(self, etype, evalue, traceback):
+        free(self.pointer)
+
+
+def wait_for_event(conn):
+    return FreeWrapper(wait_for_event_(conn))
 
 # xcb_image
 image_create_pixmap_from_bitmap_data = \
