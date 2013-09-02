@@ -276,19 +276,12 @@ class LockMaker(object):
         bg_width, bg_height = self._bg_bitmap_raw.size
         fg_width, fg_height = self._bg_bitmap_raw.size
 
-        if self.args.width is not None:
-            self.width = self.args.width
-        else:
-            self.width = bg_width
-        if self.args.height is not None:
-            self.height = self.args.height
-        else:
-            self.height = bg_height
-
-        if not self.height == bg_height == fg_height and \
-           not self.width == bg_width == fg_width:
+        if not bg_height == fg_height and not bg_width == fg_width:
             print("The sizes of the images do not match", file=sys.stderr)
             sys.exit(1)
+
+        self.height = bg_height
+        self.widht = bg_width
 
     def _guess_hotspot(self):
         # TODO: add support for hotspot from xbm (this should be
