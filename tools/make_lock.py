@@ -209,9 +209,8 @@ class PColorHander(ColorHandler):
 
     def make_transparency_filter(self):
         if 'transparency' in self._image.info:
-            transparent_colors = self._image.info['transparency']
-            threshold = self._threshold
-            return lambda x: transparent_colors[x] < threshold
+            transparent_color = self._image.info['transparency']
+            return lambda x: transparent_color == x
         else:
             return lambda x: False
 
@@ -220,6 +219,17 @@ class OneColorHandler(ColorHandler):
 
     def make_transparency_filter(self):
         return lambda x: False
+
+
+class FixedPalette(object):
+    """Read-access wrapper around ImagingPalettes as the latter is
+    entirely borken"""
+
+    def __init__(self, palette):
+        self._palette = bytearray(palette.palette)
+
+    def __getitem__(self, item):
+        return tuple(self._palette[i] for i in range(3*item, 3*item+3))
 
 
 class LockMaker(object):
@@ -263,7 +273,7 @@ class LockMaker(object):
         else:
             self._stroke(self._fg_bitmap_raw, self._fg_bitmap, self._fg_filter)
             self._stroke(self._bg_bitmap_raw, self._bg_bitmap, self._bg_filter)
-            self._bg_bitmap_raw |= self._fg_bitmap_raw
+            self._bg_bitmap |= self._fg_bitmap
 
         if self.args.debug:
             print(str(self._bg_bitmap))
@@ -327,7 +337,7 @@ class LockMaker(object):
                     elif mode == 'RGBA' or mode == 'RGBa':
                         image_fg, image_bg = f[:3], b[:3]
                     elif mode == 'P':
-                        plte = self._bg_bitmap_raw.palette
+                        plte = FixedPalette(self._bg_bitmap_raw.palette)
                         image_fg, image_bg = plte[f], plte[b]
                     else:
                         raise Exception("Can't happen")
@@ -356,11 +366,21 @@ class LockMaker(object):
                 print("Unsopported image mode", file=sys.stderr)
                 sys.exit(1)
         else:
+            mode = self._bg_bitmap_raw.mode
+            info = self._bg_bitmap_raw.info
+
+            mode_fg = self._fg_bitmap_raw.mode
+            if mode_fg != mode:
+                print("Mode mismatch. Only 1-bit bitmaps supported"
+                      " for dual-image mode", file=sys.stderr)
+                sys.exit(1)
+
             if mode in ('RGB', 'RGBA', 'RGBa', 'P', 'L'):
-                print("Unsupported image mode for dual-image", file=sys.stderr)
+                print("Unsupported image mode for dual-image"
+                      " (obviously pointless)", file=sys.stderr)
                 sys.exit(1)
             elif mode == '1':
-                self.fg_filter = lambda x: bool(x)
+                self._fg_filter = lambda x: bool(x)
                 self._bg_filter = lambda x: bool(x)
             else:
                 print("Unsopported image mode", file=sys.stderr)
