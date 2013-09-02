@@ -11,21 +11,29 @@ from abc import ABCMeta, abstractmethod
 import Image
 
 ap = argparse.ArgumentParser()
-ap.add_argument('bg_bitmap')
-ap.add_argument('fg_bitmap', nargs='?')
+ap.add_argument('bg_bitmap', help="The single image or the 1-bit mask")
+ap.add_argument('fg_bitmap', nargs='?',
+                help="If given, the 1-bit foreground pixels")
 
-ap.add_argument('--width', '-W', type=int, default=None)
-ap.add_argument('--height', '-H', type=int, default=None)
+ap.add_argument('--x-hit', '-x', type=int, default=None,
+                help="x-coordinate of the cursor hotspot")
+ap.add_argument('--y-hit', '-y', type=int, default=None,
+                help="x-coordinate of the cursor hotspot")
 
-ap.add_argument('--x-hit', '-x', type=int, default=None)
-ap.add_argument('--y-hit', '-y', type=int, default=None)
-
-ap.add_argument('--fg-color', '-f', default=None)
-ap.add_argument('--bg-color', '-b', default=None)
+ap.add_argument('--fg-color', '-f', default=None,
+                help="The foreground colour (necessary only if the colours"
+                "cannot be guessed from the image file). Accepted formats:"
+                "colour name, rgb(255, 50, 0), rgb(1.0, 0.2, 0.0), "
+                "#ff7700, #f70")
+ap.add_argument('--bg-color', '-b', default=None,
+                help="The background colour.")
 
 ap.add_argument('--output', '-o', type=argparse.FileType('wb'),
-                default=sys.stdout)
-ap.add_argument('--debug', action='store_true', default=False)
+                default=sys.stdout,
+                help="The output file, by default stdout")
+ap.add_argument('--debug', action='store_true', default=False,
+                help="Check for consistency and print"
+                "the bitmaps to the stdout")
 
 class Bitmap(object):
     def __init__(self, width, height, buf=None):

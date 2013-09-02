@@ -68,6 +68,24 @@ terminals locked.
 
 Please report any new bugs you may find to our [Github issue tracker](https://github.com/leonnnn/pyxtrlock/issues).
 
+Configuration
+-------------
+
+The padlock icon can be changed. It is stored as a
+[pickle](http://docs.python.org/3/library/pickle.html) of a
+dictionary, and the ``tools`` directory contains a tool for generating
+cursors from image files.
+
+The default cursor file is placed at
+``PREFIX/share/pyxtrlock/lock.pickle`` while the cursor file at
+``~/.config/pyxtrlock/lock.pickle`` takes precedence if present.
+
+*PLEASE NOTE:* The ``pickle`` file format is not designed to be
+resistant against maliciously crafted files. Therfore do not open
+``pickle`` files from untrusted sources as they may compromise your
+system. The default padlock file is created on install (by
+``make_default_lock.py``).
+
 Requirements
 ------------
 * [python3-simplepam](https://github.com/leonnnn/python3-simplepam)
