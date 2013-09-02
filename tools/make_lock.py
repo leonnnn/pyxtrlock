@@ -224,7 +224,7 @@ class OneColorHandler(ColorHandler):
 
 class LockMaker(object):
     RGB_TRIPLE_RE = \
-        r'\s*rgb\s*\(\s*([0-9\.]+)\s*,\s*\([0-9\.])\s*,\s*\([0-9\.])\s*\)\s*'
+        r'\s*rgb\s*\(\s*([0-9\.]+)\s*,\s*([0-9\.]+)\s*,\s*([0-9\.]+)\s*\)\s*'
 
     def __init__(self, args):
         self.args = args
@@ -449,30 +449,29 @@ class LockMaker(object):
         * #ff7f00
         * named color
         """
-        args = self.args
-        if args.fg_color.startswith('#'):
-            self._check_color_mode(rgb)
+        if color_string.startswith('#'):
+            self._check_color_mode('rgb')
 
             if len(color_string) == 4:
                 return tuple(17*int(color_string[i], base=16)
                              for i in range(1,4))
-            elif len(args.fg_color) == 7:
+            elif len(color_string) == 7:
                 return tuple(int(color_string[i:i+1], base=16)
                              for i in range(1,6,2))
             else:
                 print("Invalid color format", file=sys.stderr)
                 sys.exit(1)
         else:
-            match = re.match(RGB_TRIPLE_RE, args.fg_color)
+            match = re.match(self.RGB_TRIPLE_RE, color_string)
             if match is not None:
                 self._check_color_mode('rgb')
 
                 try:
-                    r, g, b = map(int, (match.group(i) for i in range(0, 3)))
+                    r, g, b = map(int, (match.group(i) for i in range(1, 4)))
                 except ValueError:
                     try:
                         r, g, b = map(lambda x: int(float(x)*255),
-                                      (match.group(i) for i in range(0, 3)))
+                                      (match.group(i) for i in range(1, 4)))
                     except ValueError:
                         print("Invalid color format", file=sys.stderr)
                         sys.exit(1)
