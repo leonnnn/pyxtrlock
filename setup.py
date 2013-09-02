@@ -19,7 +19,7 @@ class my_install(install):
 
 authors = (
     'Leon Weber <leon@leonweber.de>, '
-    'Sebastian Riese <sebastian.riese.mail@web.de>'
+    'Sebastian Riese <s.riese@zombofant.net>'
 )
 
 desc = (
