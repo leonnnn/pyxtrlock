@@ -81,6 +81,7 @@ class Cookie(Structure):
 
 VoidCookie = Cookie
 AllocNamedColorCookie = Cookie
+AllocColorCookie = Cookie
 GrabKeyboardCookie = Cookie
 GrabPointerCookie = Cookie
 
@@ -107,6 +108,19 @@ class AllocNamedColorReply(Structure):
         ("visual_red", c_uint16),
         ("visual_green", c_uint16),
         ("visual_blue", c_uint16)
+    ]
+
+class AllocColorReply(Structure):
+    _fields_ = [
+        ("response_type", c_uint8),
+        ("pad0", c_uint8),
+        ("sequence", c_uint16),
+        ("length", c_uint32),
+        ("red", c_uint16),
+        ("green", c_uint16),
+        ("blue", c_uint16),
+        ("pad1", c_uint8 * 2),
+        ("pixel", c_uint32),
     ]
 
 
@@ -250,6 +264,16 @@ alloc_named_color.argtypes = [
 ]
 alloc_named_color.restype = AllocNamedColorCookie
 
+alloc_color = libxcb.xcb_alloc_color
+alloc_color.argtypes = [
+    POINTER(Connection),    # connection
+    Colormap,   # cmap
+    c_uint16,   # r
+    c_uint16,   # g
+    c_uint16    # b
+]
+alloc_color.restype = AllocColorCookie
+
 alloc_named_color_reply = libxcb.xcb_alloc_named_color_reply
 alloc_named_color_reply.argtypes = [
     POINTER(Connection),    # connection
@@ -257,6 +281,14 @@ alloc_named_color_reply.argtypes = [
     POINTER(POINTER(GenericError))  # e
 ]
 alloc_named_color_reply.restype = POINTER(AllocNamedColorReply)
+
+alloc_color_reply = libxcb.xcb_alloc_color_reply
+alloc_color_reply.argtypes = [
+    POINTER(Connection),    # connection
+    AllocColorCookie,  # cookie
+    POINTER(POINTER(GenericError))  # e
+]
+alloc_color_reply.restype = POINTER(AllocColorReply)
 
 
 def alloc_named_color_sync(conn, colormap, color_string):
@@ -272,11 +304,37 @@ def alloc_named_color_sync(conn, colormap, color_string):
     cookie = alloc_named_color(conn, colormap, len(color_string),
                                color_string)
     error_p = POINTER(GenericError)()
-    res = alloc_named_color_reply(conn, cookie, byref(error_p))
+    res = alloc_named_color_reply(conn, cookie, byref(error_p)).contents
     if error_p:
         raise XCBError(error_p.contents)
 
-    return res
+    return (res.visual_red, res.visual_green, res.visual_blue)
+
+def alloc_color_sync(conn, colormap, r, g, b):
+    """Synchronously allocate a color
+
+    Wrapper function for xcb_alloc_color and alloc_color_reply.
+
+    The (r, g, b) triple is in the range 0 to 255 (as opposed to
+    the X protocol using the 0 to 2^16-1 range).
+
+    Raises ``XCBError`` on xcb errors and value errors for invalid
+    values of r, g, b.
+    """
+    if r < 0 or b < 0 or g < 0:
+        raise ValueError
+    if r > 255 or b > 255 or g > 255:
+        raise ValueError
+
+    r <<= 8; g <<= 8; b <<= 8
+
+    cookie = alloc_color(conn, colormap, r, g, b)
+    error_p = POINTER(GenericError)()
+    res = alloc_color_reply(conn, cookie, byref(error_p)).contents
+    if error_p:
+        raise XCBERror(error_p.contents)
+
+    return (res.red, res.blue, res.green)
 
 request_check = libxcb.xcb_request_check
 request_check.argtypes = [POINTER(Connection), VoidCookie]
@@ -308,10 +366,8 @@ def create_cursor_sync(conn, source, mask, fg, bg, x, y):
     """
     cursor = generate_id(conn)
     cookie = create_cursor_checked(conn, cursor, source, mask,
-                                   fg.visual_red, fg.visual_green,
-                                   fg.visual_blue, bg.visual_red,
-                                   bg.visual_green, bg.visual_blue,
-                                   x, y)
+                                   fg[0], fg[1], fg[2], bg[0],
+                                   bg[1], bg[2], x, y)
     error = request_check(conn, cookie)
     if error:
         raise XCBError(error.contents)
