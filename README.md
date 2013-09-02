@@ -101,7 +101,7 @@ These requirements are met at least on
 Authors
 -------
 * Leon Weber <leon@leonweber.de>
-* Sebastian Riese <sebastian.riese.mail@web.de>
+* Sebastian Riese <s.riese@zombofant.net>
 
 pyxtrlock has been inspired by
 [Ian Jacksons](http://www.chiark.greenend.org.uk/~ijackson/)'s brilliant
