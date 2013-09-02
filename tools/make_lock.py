@@ -294,15 +294,21 @@ class LockMaker(object):
         self.width = bg_width
 
     def _guess_hotspot(self):
-        # TODO: add support for hotspot from xbm (this should be
-        # provided in the PIL image info)
         if args.x_hit is not None:
             self.x_hot = args.x_hot
+        elif 'hotspot' in self._bg_bitmap_raw.info:
+            self.x_hot = self._bg_bitmap_raw.info['hotspot'][0]
+        elif not self.uni_image and 'hotspot' in self._fg_bitmap_raw.info:
+            self.x_hot = self._fg_bitmap_raw.info['hotspot'][0]
         else:
             self.x_hot = self.width // 2 + 1
 
         if args.y_hit is not None:
             self.y_hot = args.y_hot
+        elif 'hotspot' in self._bg_bitmap_raw.info:
+            self.y_hot = self._bg_bitmap_raw.info['hotspot'][1]
+        elif not self.uni_image and 'hotspot' in self._fg_bitmap_raw.info:
+            self.y_hot = self._fg_bitmap_raw.info['hotspot'][1]
         else:
             self.y_hot = self.height // 2 + 1
 
