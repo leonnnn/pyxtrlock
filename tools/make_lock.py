@@ -281,7 +281,7 @@ class LockMaker(object):
             sys.exit(1)
 
         self.height = bg_height
-        self.widht = bg_width
+        self.width = bg_width
 
     def _guess_hotspot(self):
         # TODO: add support for hotspot from xbm (this should be
