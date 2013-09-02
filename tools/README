@@ -83,10 +83,10 @@ Requirements
 Bugs
 ----
 
-Probably some, not all code paths have been tested. (And all the
+Probably some. Not all code paths have been tested. (And all the
 tested ones contained bugs ;) ).
 
-BMPs with Alpha, .ico with transparence, and tif are not correctly
+BMPs with Alpha, .ico with transparence, and .tif are not correctly
 handled by the PIL and therefore are neither handled correctly by this
 tool.
 
