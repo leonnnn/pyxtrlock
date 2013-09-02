@@ -70,10 +70,25 @@ do the following:
     $ mkdir ~/.config/pyxtrlock/
     $ cp lock.pickle ~/.config/pyxtrlock
 
+If the tool fails to grok an image file it may help to use ImageMagick
+to convert it to PNG:
+
+    $ convert fnord.{ico,bmp,....} fnord.png
+
 Requirements
 ------------
 *Python 2.7
 *python-imaging (PIL)
+
+Bugs
+----
+
+Probably some, not all code paths have been tested. (And all the
+tested ones contained bugs ;) ).
+
+BMPs with Alpha, .ico with transparence, and tif are not correctly
+handled by the PIL and therefore are neither handled correctly by this
+tool.
 
 Authors
 -------
