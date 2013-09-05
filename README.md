@@ -91,6 +91,7 @@ Requirements
 * [python3-simplepam](https://github.com/leonnnn/python3-simplepam)
 * Python ≥ 3.0
 * libxcb
+* libxcb-image
 * libX11 ≥ 1.4, or libX11 ≥ 1.2 compiled with XCB backend
 
 These requirements are met at least on
