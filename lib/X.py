@@ -35,6 +35,27 @@ class KeyEvent(Structure):
         ("same_screen", Bool)
     ]
 
+    @classmethod
+    def from_xcb_event(cls, display, xcb_key_press_event):
+        x_key_press_event = cls()
+        x_key_press_event.type = xcb_key_press_event.response_type
+        x_key_press_event.serial = xcb_key_press_event.sequence
+        x_key_press_event.send_event = 0
+        x_key_press_event.display = display
+        x_key_press_event.window = xcb_key_press_event.event
+        x_key_press_event.root = xcb_key_press_event.root
+        x_key_press_event.subwindow = xcb_key_press_event.child
+        x_key_press_event.time = xcb_key_press_event.time
+        x_key_press_event.x = xcb_key_press_event.event_x
+        x_key_press_event.y = xcb_key_press_event.event_y
+        x_key_press_event.y_root = xcb_key_press_event.root_y
+        x_key_press_event.state = xcb_key_press_event.state
+        x_key_press_event.same_screen = xcb_key_press_event.same_screen
+        x_key_press_event.keycode = xcb_key_press_event.detail
+
+        return x_key_press_event
+
+
 Keysym = c_ulong
 Status = c_int
 
