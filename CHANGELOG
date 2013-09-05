@@ -4,3 +4,5 @@ Release 0.1:
        Paul Lhussiez.
 Development Version:
 • Enhancement: Report missing libraries when loading via ctypes
+• Security: Check correctly for the result of the
+  xcb_grab_{pointer,keyboard} commands

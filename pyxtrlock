@@ -117,9 +117,11 @@ xcb.map_window(conn, window)
 
 # Grab keyboard
 try:
-    kbd_grab = xcb.grab_keyboard_sync(conn, 0, window, xcb.CURRENT_TIME,
-                                      xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
-    xcb.free(kbd_grab)
+    status = xcb.grab_keyboard_sync(conn, 0, window, xcb.CURRENT_TIME,
+                                    xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
+
+    if status != xcb.GrabSuccess:
+        panic("pyxtrlock: Could not get grab keyboard")
 except xcb.XCBError as e:
     print("pyxtrlock: Could not get grab keyboard", file=sys.stderr)
     sys.exit(1)
@@ -133,13 +135,16 @@ except xcb.XCBError as e:
 #  (i.e. after 1s in total), then give up, and emit an error"
 for i in range(100):
     try:
-        ptr_grab = xcb.grab_pointer_sync(conn, False, window, 0,
-                                         xcb.GRAB_MODE_ASYNC,
-                                         xcb.GRAB_MODE_ASYNC,
-                                         xcb.WINDOW_NONE, cursor,
-                                         xcb.CURRENT_TIME)
-        xcb.free(ptr_grab)
-        break
+        status = xcb.grab_pointer_sync(conn, False, window, 0,
+                                       xcb.GRAB_MODE_ASYNC,
+                                       xcb.GRAB_MODE_ASYNC,
+                                       xcb.WINDOW_NONE, cursor,
+                                       xcb.CURRENT_TIME)
+
+        if status == xcb.GrabSuccess:
+            break
+        else:
+            time.sleep(0.01)
     except xcb.XCBError as e:
         time.sleep(0.01)
 else:

@@ -412,8 +412,8 @@ def grab_keyboard_sync(conn, owner_events, grab_window, time, ptr_mode,
     """
     Synchronously grab the keyboard.
 
-    Wrapper function for grab_pointer and grab_pointer_reply.
-    Raises ``XCBError`` on error, otherwise returns ``GrabKeyboardReply``.
+    Wrapper function for grab_pointer and grab_pointer_reply. Returns
+    the status field from the reply. Raises ``XCBError`` on error.
     """
     owner_events = 1 if owner_events else 0
 
@@ -424,7 +424,9 @@ def grab_keyboard_sync(conn, owner_events, grab_window, time, ptr_mode,
 
     if error_p:
         raise XCBError(error_p.contents)
-    return kbd_grab
+    status = kbd_grab.contents.status
+    free(kbd_grab)
+    return status
 
 
 grab_pointer = libxcb.xcb_grab_pointer
@@ -449,6 +451,12 @@ grab_pointer_reply.argtypes = [
 ]
 grab_pointer_reply.restype = POINTER(GrabPointerReply)
 
+# constants to interpret grab results
+GrabSuccess = 0
+AlreadyGrabbed = 1
+GrabInvalidTime = 2
+GrabNotViewable = 3
+GrabFrozen = 4
 
 def grab_pointer_sync(conn, owner_events, window, event_mask, ptr_mode,
                       kbd_mode, confine_to, cursor, timestamp):
@@ -466,7 +474,9 @@ def grab_pointer_sync(conn, owner_events, window, event_mask, ptr_mode,
     ptr_grab = grab_pointer_reply(conn, cookie, byref(error_p))
     if error_p:
         raise XCBError(error_p.contents)
-    return ptr_grab
+    status = ptr_grab.contents.status
+    free(ptr_grab)
+    return status
 
 wait_for_event_ = libxcb.xcb_wait_for_event
 wait_for_event_.argtypes = [POINTER(Connection)]
