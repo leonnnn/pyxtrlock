@@ -53,24 +53,29 @@ we recommend the ``xautolock`` tool. Just add something like
 
     xautolock -locker pyxtrlock -time 5
 
-to your X autostart file to lock the screen with ``pyxtrlock`` after
-5 minutes idle time. ``xautolock`` has many other useful features, see
+to your X autostart file to lock the screen with ``pyxtrlock`` after 5
+minutes idle time. ``xautolock`` has many other useful features, see
 its documentation. Most distributions provide an ``xautolock`` package
-with a man page.
+with a man page. An alternative to ``xautolock`` is the use of
+[autolockd](https://github.com/zombofant/autolockd) which also
+monitors for lid close and suspend events.
 
-Bugs
-----
+Bugs & Limitations
+------------------
 Additional input devices other than the keyboard and mouse are not disabled.
 
-Although this is not a bug, please note that pyxtrlock does not prevent a
-user from switching to a virtual terminal, so be advised to always leave your
-terminals locked.
+Although this is not a bug, please note that pyxtrlock does not
+prevent a user from switching to a virtual terminal, so be advised to
+always log out from your terminals.
 
-Please report any new bugs you may find to our [Github issue tracker](https://github.com/leonnnn/pyxtrlock/issues).
+The lenght of the password is limited to 100 KiB to prevent memory
+exhaustion attacks. This limit can only be adapted in the source code.
+
+Please report any new bugs you may find to our
+[Github issue tracker](https://github.com/leonnnn/pyxtrlock/issues).
 
 Configuration
 -------------
-
 The padlock icon can be changed. It is stored as a
 [pickle](http://docs.python.org/3/library/pickle.html) of a
 dictionary, and the ``tools`` directory contains a tool for generating
