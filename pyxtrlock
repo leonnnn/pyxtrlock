@@ -12,8 +12,16 @@ from ctypes import POINTER, c_int, c_uint32, c_char
 import simplepam as pam
 
 import pyxtrlock
-import pyxtrlock.xcb as xcb
-import pyxtrlock.X as X
+try:
+    import pyxtrlock.xcb as xcb
+except ImportError as err:
+    print(err, file=sys.stderr)
+    sys.exit(1)
+try:
+    import pyxtrlock.X as X
+except ImportError as err:
+    print(err, file=sys.stderr)
+    sys.exit(1)
 
 if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
     msg = (
