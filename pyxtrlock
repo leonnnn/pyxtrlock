@@ -157,6 +157,10 @@ if not ic:
 
 X.set_ic_focus(ic)
 
+# pwd length limit to prevent memory exhaustion (and therefore
+# possible failure due to OOM killing)
+PWD_LENGTH_LIMIT = 100 * 1024
+
 # timeout algorithm constants
 TIMEOUTPERATTEMPT = 30000
 MAXGOODWILL = TIMEOUTPERATTEMPT * 5
@@ -219,7 +223,7 @@ while True:
                         continue
 
             if status == X.LOOKUP_BOTH or status == X.LOOKUP_CHARS:
-                if length:
+                if length and sum(map(len, pwd)) < PWD_LENGTH_LIMIT:
                     pwd.append(bytes(buf[:length]))
 
 X.close_window(display)

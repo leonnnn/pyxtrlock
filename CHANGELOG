@@ -6,3 +6,6 @@ Development Version:
 • Enhancement: Report missing libraries when loading via ctypes
 • Security: Check correctly for the result of the
   xcb_grab_{pointer,keyboard} commands
+• Security: Limit length of buffered password to prevent memory exhaustion
+  (this is a real concern when attacked with custom hardware which
+  simulates most rapid keystrokes)
