@@ -12,24 +12,23 @@ from ctypes import POINTER, c_int, c_uint32, c_char
 import simplepam as pam
 
 import pyxtrlock
+from pyxtrlock import panic
 try:
     import pyxtrlock.xcb as xcb
 except ImportError as err:
-    print(err, file=sys.stderr)
-    sys.exit(1)
+    panic(err)
+
 try:
     import pyxtrlock.X as X
 except ImportError as err:
-    print(err, file=sys.stderr)
-    sys.exit(1)
+    panic(err)
 
 if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
     msg = (
         "pyxtrlock: refusing to run as root. Use -f to force. Warning: You "
         "might not be able to unlock."
     )
-    print(msg, file=sys.stderr)
-    sys.exit(1)
+    panic(msg)
 
 # load cursor data file
 try:
@@ -40,11 +39,9 @@ try:
         f = open(os.path.join(pyxtrlock.data_dir, "lock.pickle"), "rb")
     cursor = pickle.load(f)
 except OSError as e:
-    print(e.strerror, file=sys.stderr)
-    sys.exit(1)
+    panic(e.strerror)
 except pickle.UnpicklingError as e:
-    print(e.args, file=sys.stderr)
-    sys.exit(1)
+    panic(e.args)
 finally:
     f.close()
 
@@ -52,8 +49,7 @@ display = X.create_window(None)
 conn = X.get_xcb_connection(display)
 
 if not display:
-    print("pyxtrlock: Could not connect to X server", file=sys.stderr)
-    sys.exit(1)
+    panic("pyxtrlock: Could not connect to X server")
 
 screen_num = c_int()
 
@@ -102,15 +98,13 @@ elif cursor["color_mode"] == "rgb":
     csr_fg = xcb.alloc_color_sync(conn, screen.default_colormap,
                                   r, g, b)
 else:
-    print("Invalid color mode", file=sys.stderr)
-    sys.exit(1)
+    panic("Invalid color mode")
 
 try:
     cursor = xcb.create_cursor_sync(conn, csr_map, csr_mask, csr_fg, csr_bg,
                                     cursor["x_hot"], cursor["y_hot"])
 except xcb.XCBError as e:
-    print("pyxtrlock: Could not create cursor", file=sys.stderr)
-    sys.exit(1)
+    panic("pyxtrlock: Could not create cursor")
 
 # map window
 xcb.map_window(conn, window)
@@ -123,8 +117,7 @@ try:
     if status != xcb.GrabSuccess:
         panic("pyxtrlock: Could not get grab keyboard")
 except xcb.XCBError as e:
-    print("pyxtrlock: Could not get grab keyboard", file=sys.stderr)
-    sys.exit(1)
+    panic("pyxtrlock: Could not get grab keyboard")
 
 # Grab pointer
 # Use the method from the original xtrlock code:
@@ -148,22 +141,19 @@ for i in range(100):
     except xcb.XCBError as e:
         time.sleep(0.01)
 else:
-    print("pyxtrlock: Could not grab pointing device", file=sys.stderr)
-    sys.exit(1)
+    panic("pyxtrlock: Could not grab pointing device")
 
 xcb.flush(conn)
 
 # Prepare X Input
 im = X.open_IM(display, None, None, None)
 if not im:
-    print("pyxtrlock: Could not open Input Method", file=sys.stderr)
-    sys.exit(1)
+    panic("pyxtrlock: Could not open Input Method")
 
 ic = X.create_IC(im, X.N_INPUT_STYLE,
                  X.IM_PRE_EDIT_NOTHING | X.IM_STATUS_NOTHING, None)
 if not ic:
-    print("pyxtrlock: Could not open Input Context", file=sys.stderr)
-    sys.exit(1)
+    panic("pyxtrlock: Could not open Input Context")
 
 X.set_ic_focus(ic)
 
