@@ -23,7 +23,7 @@ optional arguments:
                         x-coordinate of the cursor hotspot
   --fg-color FG_COLOR, -f FG_COLOR
                         The foreground colour (necessary only if the
-                        colourscannot be guessed from the image file).
+                        colours cannot be guessed from the image file).
                         Accepted formats:colour name, rgb(255, 50, 0),
                         rgb(1.0, 0.2, 0.0), #ff7700, #f70
   --bg-color BG_COLOR, -b BG_COLOR
@@ -62,7 +62,7 @@ Typical usage
 -------------
 
 To create a cursor from a PNG with two colors (foreground and
-background) and transparenct pixels and then install it for your user
+background) and transparent pixels and then install it for your user
 do the following:
 
     $ ./make_lock.py lock.png -o lock.pickle
@@ -78,6 +78,7 @@ to convert it to PNG:
 Requirements
 ------------
 *Python 2.7
+*Python 3 for repickle.py
 *python-imaging (PIL)
 
 Bugs

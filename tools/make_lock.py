@@ -21,7 +21,7 @@ ap.add_argument('--y-hit', '-y', type=int, default=None,
                 help="x-coordinate of the cursor hotspot")
 
 ap.add_argument('--fg-color', '-f', default=None,
-                help="The foreground colour (necessary only if the colours"
+                help="The foreground colour (necessary only if the colours "
                 "cannot be guessed from the image file). Accepted formats:"
                 "colour name, rgb(255, 50, 0), rgb(1.0, 0.2, 0.0), "
                 "#ff7700, #f70")
