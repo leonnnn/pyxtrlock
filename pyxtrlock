@@ -25,8 +25,8 @@ except ImportError as err:
 
 if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
     msg = (
-        "pyxtrlock: refusing to run as root. Use -f to force. Warning: You "
-        "might not be able to unlock."
+        "pyxtrlock: refusing to run as root. Use -f to force. Warning: "
+        "Your PAM configuration may deny unlocking as root."
     )
     panic(msg)
 
