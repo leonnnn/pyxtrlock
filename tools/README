@@ -43,18 +43,18 @@ The recommended file type is PNG.
 There are several modes of operation which are guessed from the
 supplied file:
 
-*a single colour image with 2 colours and transparency is compiled to
+*A single colour image with 2 colours and transparency is compiled to
  the appropriate cursor (transparency may either be an alpha threshold
- or single colour transparency)
-*a single image with 1 colour will have its border stroked the colours
- should be given on the commandline
-*two (one bit!) bitmaps may be given, on is the mask and the other the
- foreground of the cursor. The colours should be given on the commandline.
-*colours may be given on the commandline or the default colours black
- and white apply, colours given on the commandline override colours from
- the file, but note that the assignment will be random in that case
+ or single colour transparency).
+*A single image with 1 colour will have its border stroked. The colours
+ should be given on the command line.
+*Two (one bit!) bitmaps may be given, one is the mask and the other the
+ foreground of the cursor. The colours should be given on the command line.
+*Colours may be given on the command line or the default colours black
+ and white apply. Colours given on the command line override colours from
+ the file, but note that the assignment will be random in that case.
 
-Additionally the cursor hotspot can be given otherwhise it is the
+Additionally, the cursor hotspot can be given. If not specified, it is the
 center of the image (this is more or less irrelevant, as the all
 cursor events are blocked by pyxtrlock).
 
@@ -85,9 +85,10 @@ Bugs
 ----
 
 Probably some. Not all code paths have been tested. (And all the
-tested ones contained bugs ;) ).
+tested ones contained bugs ;) ). Please report any bugs you may find
+to our [Github issue tracker](https://github.com/leonnnn/pyxtrlock/issues).
 
-BMPs with Alpha, .ico with transparence, and .tif are not correctly
+BMPs with Alpha, .ico with transparency, and .tif are not correctly
 handled by the PIL and therefore are neither handled correctly by this
 tool.
 
@@ -95,8 +96,8 @@ Authors
 -------
 Sebastian Riese <s.riese@sotecware.net>
 
-Liense
-------
+License
+-------
 
 Copyright 2013 Sebastian Riese
 

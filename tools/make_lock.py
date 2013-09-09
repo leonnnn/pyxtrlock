@@ -18,7 +18,7 @@ ap.add_argument('fg_bitmap', nargs='?',
 ap.add_argument('--x-hit', '-x', type=int, default=None,
                 help="x-coordinate of the cursor hotspot")
 ap.add_argument('--y-hit', '-y', type=int, default=None,
-                help="x-coordinate of the cursor hotspot")
+                help="y-coordinate of the cursor hotspot")
 
 ap.add_argument('--fg-color', '-f', default=None,
                 help="The foreground colour (necessary only if the colours "
@@ -33,7 +33,7 @@ ap.add_argument('--output', '-o', type=argparse.FileType('wb'),
                 help="The output file, by default stdout")
 ap.add_argument('--debug', action='store_true', default=False,
                 help="Check for consistency and print"
-                "the bitmaps to the stdout")
+                "the bitmaps to stdout")
 
 class Bitmap(object):
     def __init__(self, width, height, buf=None):
