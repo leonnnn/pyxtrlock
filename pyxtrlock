@@ -115,9 +115,9 @@ try:
                                     xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
 
     if status != xcb.GrabSuccess:
-        panic("pyxtrlock: Could not get grab keyboard")
+        panic("pyxtrlock: Could not grab keyboard")
 except xcb.XCBError as e:
-    panic("pyxtrlock: Could not get grab keyboard")
+    panic("pyxtrlock: Could not grab keyboard")
 
 # Grab pointer
 # Use the method from the original xtrlock code:
