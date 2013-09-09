@@ -43,7 +43,7 @@ The recommended file type is PNG.
 There are several modes of operation which are guessed from the
 supplied file:
 
-*a singe colour image with 2 colours and transparency is compiled to
+*a single colour image with 2 colours and transparency is compiled to
  the appropriate cursor (transparency may either be an alpha threshold
  or single colour transparency)
 *a single image with 1 colour will have its border stroked the colours
