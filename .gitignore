@@ -1,4 +1,5 @@
 *.py[cod]
+*.pickle
 
 # C extensions
 *.so
@@ -31,3 +32,6 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Unix editor backup files
+*~

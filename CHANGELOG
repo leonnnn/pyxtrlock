@@ -1,3 +1,13 @@
+Release 0.2 :
+• Security: Check correctly for the result of the
+  xcb_grab_{pointer,keyboard} commands
+• Security: Limit length of buffered password to prevent memory exhaustion
+  (this is a real concern when attacked with custom hardware which
+  simulates most rapid keystrokes)
+• Security: Fix several memory leaks
+• Enhancement: Report missing libraries when loading via ctypes.
+• Enhancement: Provide ability and tools to use custom lock images as cursor
+
 Release 0.1:
 • [#8] Security: Fixed a typo that could in some circumstances lead to a
        crash after multiple failed authentication attempts. Thanks,
