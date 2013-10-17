@@ -1,6 +1,6 @@
 Release 0.2 :
 • Security: Check correctly for the result of the
-  xcb_grab_{pointer,keyboard} commands
+  xcb_grab_{pointer,keyboard} commands (CVE-2013-4427).
 • Security: Limit length of buffered password to prevent memory exhaustion
   (this is a real concern when attacked with custom hardware which
   simulates most rapid keystrokes)
@@ -11,4 +11,4 @@ Release 0.2 :
 Release 0.1:
 • [#8] Security: Fixed a typo that could in some circumstances lead to a
        crash after multiple failed authentication attempts. Thanks,
-       Paul Lhussiez.
+       Paul Lhussiez (CVE-2013-4426).
