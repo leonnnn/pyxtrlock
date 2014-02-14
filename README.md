@@ -60,6 +60,20 @@ with a man page. An alternative to ``xautolock`` is the use of
 [autolockd](https://github.com/zombofant/autolockd) which also
 monitors for lid close and suspend events.
 
+Staying up-to-date
+------------------
+As pyxtrlock is a security tool, it is important to stay up-to-date with
+security updates. We take security seriously and try to handle any
+vulnerabilities quickly. However, our efforts are useless if the users
+aren’t notified that updates are available, so if you use pyxtrlock, we
+urge you to subscribe to
+[the pyxtrlock mailing list](http://lists.zombofant.net/mailman/listinfo/pyxtrlock).
+This list is likely very low traffic and will ensure you get
+notifications of security updates in time.
+
+We also appreciate any feedback you have regarding pyxtrlock on this
+mailing list.
+
 Bugs & Limitations
 ------------------
 Additional input devices other than the keyboard and mouse are not disabled.
