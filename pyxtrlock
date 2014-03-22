@@ -17,6 +17,8 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Transparent screen-lock.')
 parser.add_argument('--pwfile', help='file containing password to check against')
+parser.add_argument('-f', '--force', action='store_true',
+                    help='force execution even if running as root')
 args = parser.parse_args()
 
 if args.pwfile:
@@ -24,7 +26,8 @@ if args.pwfile:
     st = os.stat(args.pwfile)
     group_or_other_access = bool(st.st_mode & (stat.S_IRWXG | stat.S_IRWXO))
     if group_or_other_access:
-        panic("Sorry, the password file must have permissions of 0600.  Use the chmod command to set this.")
+        panic("Sorry, the password file must have permissions of 0600."
+              "  Use the chmod command to set this.")
     
     # load pw from file (represented as bytes)
     pw = open(args.pwfile,'rb').read().strip(b'\n')
@@ -47,7 +50,7 @@ try:
 except ImportError as err:
     panic(err)
 
-if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
+if getpass.getuser() == 'root' and not args.force:
     msg = (
         "pyxtrlock: refusing to run as root. Use -f to force. Warning: "
         "Your PAM configuration may deny unlocking as root."
