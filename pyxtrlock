@@ -6,13 +6,37 @@ import sys
 import time
 import pickle
 import getpass
-from ctypes import byref, cast, sizeof
+from ctypes import byref, cast
 from ctypes import POINTER, c_int, c_uint32, c_char
-
-import simplepam as pam
+import stat
 
 import pyxtrlock
 from pyxtrlock import panic
+
+import argparse
+
+parser = argparse.ArgumentParser(description='Transparent screen-lock.')
+parser.add_argument('--pwfile', help='file containing password to check against')
+args = parser.parse_args()
+
+if args.pwfile:
+    # verify permissions are 0600 
+    st = os.stat(args.pwfile)
+    group_or_other_access = bool(st.st_mode & (stat.S_IRWXG | stat.S_IRWXO))
+    if group_or_other_access:
+        panic("Sorry, the password file must have permissions of 0600.  Use the chmod command to set this.")
+    
+    # load pw from file (represented as bytes)
+    pw = open(args.pwfile,'rb').read().strip(b'\n')
+
+try:
+    import simplepam as pam
+    pam_avail = True
+except ImportError as err:
+    if not args.pwfile:
+        panic(err)
+    pam_avail = False
+
 try:
     import pyxtrlock.xcb as xcb
 except ImportError as err:
@@ -209,7 +233,11 @@ while True:
                         pwd.pop()
                     continue
                 elif keysym == X.K_LineFeed or keysym == X.K_Return:
-                    if pam.authenticate(getpass.getuser(), b''.join(pwd)):
+                    # try either authentication method (pw file or pam)
+                    # if converting a string to bytes, use mystr.encode('utf-8')
+                    if args.pwfile and (b''.join(pwd) == pw):
+                        break
+                    elif pam_avail and pam.authenticate(getpass.getuser(), b''.join(pwd)):
                         break
                     else:
                         pwd = []
