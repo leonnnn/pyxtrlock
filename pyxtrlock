@@ -54,13 +54,28 @@ if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
     )
     panic(msg)
 
-# load cursor data file
+# try to load cursor data file from one of several places
+# this works around different places that the file might get installed
+#
+# ideally, there would be a nice API to poll the default install location,
+# but alas this can be inconsistent with the actual install location (e.g. when
+# using sysconfig), so we resort to just trying a few good guesses.
+#
+# see https://mail.python.org/pipermail/distutils-sig/2014-February/023867.html
+#
 try:
-    f_name = os.path.expanduser("~/.config/pyxtrlock/lock.pickle")
-    if os.path.exists(f_name):
-        f = open(f_name, "rb")
-    else:
-        f = open(os.path.join(pyxtrlock.data_dir, "lock.pickle"), "rb")
+    paths = [
+               os.path.expanduser("~/.config/pyxtrlock"),
+               '/usr/local/share/pyxtrlock',
+               pyxtrlock.data_dir
+            ]
+
+    for p in paths:
+        f_name = os.path.join(p, "lock.pickle")
+        if os.path.exists(f_name):
+            f = open(f_name, "rb")
+            break
+
     cursor = pickle.load(f)
 except OSError as e:
     panic(e.strerror)
