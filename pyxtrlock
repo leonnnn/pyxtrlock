@@ -9,7 +9,9 @@ import getpass
 from ctypes import byref, cast
 from ctypes import POINTER, c_int, c_uint32, c_char
 import stat
+import pwd
 import argparse
+import traceback
 
 import pyxtrlock
 from pyxtrlock import panic
@@ -24,6 +26,38 @@ try:
 except ImportError as err:
     panic(err)
 
+def file_owned_by_current_user(filename):
+    file_owner_name = pwd.getpwuid(os.stat(filename).st_uid).pw_name
+    current_user_name = getpass.getuser()
+    return  (file_owner_name == current_user_name)
+
+
+def daemon_loop():
+    """Continuously check for / act upon lock-file existence.
+
+    When the specified lock-file exists, its ownership will be checked, and if
+    it is owned by the user running this program, the file will be deleted
+    and the screen will be locked.
+
+    """
+    try:
+        print("Entering daemon mode... (Ctrl-C to exit)")
+
+        while True:
+            try:
+                time.sleep(2)
+                # check for lock-file
+                if os.path.exists(args.lockfile) and file_owned_by_current_user(args.lockfile):
+                    os.remove(args.lockfile)
+                    lock_screen()
+            except KeyboardInterrupt:
+                raise
+            except:
+                print("Caught Exception:")
+                traceback.print_exc(file=sys.stdout)
+
+    except KeyboardInterrupt:
+        print("Exiting...")
 
 
 def parse_args():
@@ -31,6 +65,7 @@ def parse_args():
     
     parser = argparse.ArgumentParser(description='Transparent screen-lock.')
     parser.add_argument('--pwfile', help='file containing password to check against')
+    parser.add_argument('--lockfile', help='if this file exists, then lock the screen and delete the file')
     parser.add_argument('-f', '--force', action='store_true',
                         help='force execution even if running as root')
     args = parser.parse_args()
@@ -285,5 +320,8 @@ def lock_screen():
 
 if __name__ == "__main__":
     parse_args()
-    lock_screen()
+    if args.lockfile:
+        daemon_loop()
+    else:
+        lock_screen()
 
