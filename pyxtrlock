@@ -26,6 +26,11 @@ try:
 except ImportError as err:
     panic(err)
 
+try:
+    import pyxtrlock.defaultcursor as defaultcursor
+except ImportError as err:
+    panic(err)
+
 def file_owned_by_current_user(filename):
     file_owner_name = pwd.getpwuid(os.stat(filename).st_uid).pw_name
     current_user_name = getpass.getuser()
@@ -120,15 +125,16 @@ def lock_screen():
             f_name = os.path.join(p, "lock.pickle")
             if os.path.exists(f_name):
                 f = open(f_name, "rb")
+                cursor = pickle.load(f)
+                f.close()
                 break
+        else:
+            cursor = defaultcursor.lock_cursor
 
-        cursor = pickle.load(f)
     except OSError as e:
         panic(e.strerror)
     except pickle.UnpicklingError as e:
         panic(e.args)
-    finally:
-        f.close()
     
     display = X.create_window(None)
     conn = X.get_xcb_connection(display)
