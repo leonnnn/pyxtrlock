@@ -52,8 +52,9 @@ def daemon_loop():
             try:
                 time.sleep(2)
                 # check for lock-file
-                if os.path.exists(args.lockfile) and file_owned_by_current_user(args.lockfile):
-                    os.remove(args.lockfile)
+                f = args.lockfile
+                if f and os.path.exists(f) and file_owned_by_current_user(f):
+                    os.remove(f)
                     lock_screen()
             except KeyboardInterrupt:
                 raise
@@ -71,6 +72,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Transparent screen-lock.')
     parser.add_argument('--pwfile', help='file containing password to check against')
     parser.add_argument('--lockfile', help='if this file exists, then lock the screen and delete the file')
+    parser.add_argument('--unlockfile', help='if this file exists, then unlock the screen and delete the file')
     parser.add_argument('-f', '--force', action='store_true',
                         help='force execution even if running as root')
     args = parser.parse_args()
@@ -264,6 +266,10 @@ def lock_screen():
     goodwill = INITIALGOODWILL
     while True:
         with xcb.wait_for_event(conn) as event:
+            f = args.unlockfile
+            if f and os.path.exists(f) and file_owned_by_current_user(f):
+                os.remove(f)
+                break
             if event.contents.response_type == xcb.KEY_PRESS:
                 xcb_key_press_event = cast(event,
                                            POINTER(xcb.KeyPressEvent)).contents
