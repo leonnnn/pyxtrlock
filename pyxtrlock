@@ -31,11 +31,23 @@ try:
 except ImportError as err:
     panic(err)
 
-def file_owned_by_current_user(filename):
+def assert_file_owned_by_current_user(filename):
     file_owner_name = pwd.getpwuid(os.stat(filename).st_uid).pw_name
     current_user_name = getpass.getuser()
-    return  (file_owner_name == current_user_name)
+    if file_owner_name != current_user_name:
+        warn_str = "Semaphore file '{}' must be owned by {}."
+        print(warn_str.format(filename,current_user_name))
+        raise UserWarning()
+    else:
+        return True
 
+def assert_size_zero(filename):
+    if os.path.getsize(filename) != 0:
+        warn_str = "Semaphore file '{}' must be empty."
+        print(warn_str.format(filename))
+        raise UserWarning()
+    else:
+        return True
 
 def daemon_loop():
     """Continuously check for / act upon lock-file existence.
@@ -53,11 +65,15 @@ def daemon_loop():
                 time.sleep(2)
                 # check for lock-file
                 f = args.lockfile
-                if f and os.path.exists(f) and file_owned_by_current_user(f):
+                if f and os.path.exists(f):
+                    assert_file_owned_by_current_user(f)
+                    assert_size_zero(f)
                     os.remove(f)
                     lock_screen()
             except KeyboardInterrupt:
                 raise
+            except UserWarning:
+                pass # ignore
             except:
                 print("Caught Exception:")
                 traceback.print_exc(file=sys.stdout)
@@ -266,10 +282,16 @@ def lock_screen():
     goodwill = INITIALGOODWILL
     while True:
         with xcb.wait_for_event(conn) as event:
-            f = args.unlockfile
-            if f and os.path.exists(f) and file_owned_by_current_user(f):
-                os.remove(f)
-                break
+            try:
+                f = args.unlockfile
+                if f and os.path.exists(f):
+                    assert_file_owned_by_current_user(f)
+                    assert_size_zero(f)
+                    os.remove(f)
+                    break
+            except UserWarning:
+                pass # ignore
+
             if event.contents.response_type == xcb.KEY_PRESS:
                 xcb_key_press_event = cast(event,
                                            POINTER(xcb.KeyPressEvent)).contents
