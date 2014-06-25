@@ -38,6 +38,13 @@ dependencies:
     $ cd python3-simplepam
     $ sudo python3 setup.py install
 
+Install [pyxdg](http://freedesktop.org/Software/pyxdg) for
+dependencies:
+
+    $ git clone git://anongit.freedesktop.org/xdg/pyxdg
+    $ cd pyxdg
+    $ sudo python3 setup.py install
+
 Clone and install pyxtrlock:
 
     $ git clone git://github.com/leonnnn/pyxtrlock.git
@@ -108,6 +115,7 @@ system. The default padlock file is created on install (by
 Requirements
 ------------
 * [python3-simplepam](https://github.com/leonnnn/python3-simplepam)
+* [pyxdg](http://freedesktop.org/Software/pyxdg)
 * Python ≥ 3.0
 * libxcb
 * libxcb-image

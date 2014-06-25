@@ -9,6 +9,7 @@ import getpass
 from ctypes import byref, cast, sizeof
 from ctypes import POINTER, c_int, c_uint32, c_char
 
+from xdg.BaseDirectory import xdg_config_home
 import simplepam as pam
 
 import pyxtrlock
@@ -32,7 +33,7 @@ if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
 
 # load cursor data file
 try:
-    f_name = os.path.expanduser("~/.config/pyxtrlock/lock.pickle")
+    f_name = os.path.join(xdg_config_home, "pyxtrlock", "lock.pickle")
     if os.path.exists(f_name):
         f = open(f_name, "rb")
     else:
