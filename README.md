@@ -38,12 +38,8 @@ dependencies:
     $ cd python3-simplepam
     $ sudo python3 setup.py install
 
-Install [pyxdg](http://freedesktop.org/Software/pyxdg) for
-dependencies:
-
-    $ git clone git://anongit.freedesktop.org/xdg/pyxdg
-    $ cd pyxdg
-    $ sudo python3 setup.py install
+Install pyxdg, which is available as python3-pyxdg or similar in most Linux
+distributions.
 
 Clone and install pyxtrlock:
 
