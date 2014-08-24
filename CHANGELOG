@@ -1,3 +1,7 @@
+Release xxx:
+• Enhancement: Make pyxtrlock conform to the XDG specification. Patch by
+  Cristian Ciupitu.
+
 Release 0.2 :
 • Security: Check correctly for the result of the
   xcb_grab_{pointer,keyboard} commands (CVE-2013-4427).
