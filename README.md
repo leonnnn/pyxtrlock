@@ -107,7 +107,7 @@ resistant against maliciously crafted files. Therfore do not open
 ``pickle`` files from untrusted sources as they may compromise your
 system. The default padlock file is created on install (by
 ``make_default_lock.py``). In case you do not want to see any kind
-of cursor, an empty one can be created using  ̀ ̀̀̀̀̀̀̀̀make_empty_lock.py``.
+of cursor, an empty one can be created using ``make_empty_lock.py``.
 
 Requirements
 ------------
