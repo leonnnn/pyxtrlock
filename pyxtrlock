@@ -111,22 +111,28 @@ except xcb.XCBError as e:
 xcb.map_window(conn, window)
 
 # Grab keyboard
-try:
-    status = xcb.grab_keyboard_sync(conn, 0, window, xcb.CURRENT_TIME,
-                                    xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
-
-    if status != xcb.GrabSuccess:
-        panic("pyxtrlock: Could not grab keyboard")
-except xcb.XCBError as e:
-    panic("pyxtrlock: Could not grab keyboard")
-
-# Grab pointer
 # Use the method from the original xtrlock code:
 #  "Sometimes the WM doesn't ungrab the keyboard quickly enough if
 #  launching xtrlock from a keystroke shortcut, meaning xtrlock fails
 #  to start We deal with this by waiting (up to 100 times) for 10,000
 #  microsecs and trying to grab each time. If we still fail
 #  (i.e. after 1s in total), then give up, and emit an error"
+
+for i in range(100):
+    try:
+        status = xcb.grab_keyboard_sync(conn, 0, window, xcb.CURRENT_TIME,
+                                        xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
+
+        if status == xcb.GrabSuccess:
+            break
+        else:
+            time.sleep(0.01)
+    except xcb.XCBError as e:
+        time.sleep(0.01)
+else:
+    panic("pyxtrlock: Could not grab keyboard")
+
+# Grab pointer
 for i in range(100):
     try:
         status = xcb.grab_pointer_sync(conn, False, window, 0,

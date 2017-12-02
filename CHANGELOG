@@ -3,6 +3,9 @@ Release xxx:
   Cristian Ciupitu.
 • Enhancement: Ship script to create an empty lock symbol. Patch by Alexander
   Klink.
+• Enhancement: Retry grabbing the keyboard as well as the mouse to
+  prevent issues when starting pyxtrlock from a keyboard shortcut.
+  Patch by Nils Ballmann.
 
 Release 0.2 :
 • Security: Check correctly for the result of the
