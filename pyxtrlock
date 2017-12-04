@@ -176,7 +176,7 @@ timeout = 0
 goodwill = INITIALGOODWILL
 while True:
     with xcb.wait_for_event(conn) as event:
-        if event is None:
+        if not event:
             # this test should always be true, we have it here as an
             # extra precaution, so we do not kill pyxtrlock if there
             # still is a connection to the X server (although
