@@ -509,6 +509,12 @@ class FreeWrapper(object):
 def wait_for_event(conn):
     return FreeWrapper(wait_for_event_(conn))
 
+connection_has_error = libxcb.xcb_connection_has_error
+connection_has_error.restype = c_int
+connection_has_error.argtypes = [
+    POINTER(Connection),
+]
+
 # xcb_image
 image_create_pixmap_from_bitmap_data = \
     libxcb_image.xcb_create_pixmap_from_bitmap_data
