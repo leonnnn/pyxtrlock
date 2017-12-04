@@ -1,19 +1,12 @@
 make_lock.py
 ============
 
-PLEASE NOTE: make_lock.py requires python2 as the PIL is not packaged
-for python3 on most distris.
-
-Therefore another tool – repickle.py – must be used to postprocess the
-generated files.
-
 usage: make_lock.py [-h] [--x-hit X_HIT] [--y-hit Y_HIT] [--fg-color FG_COLOR]
                     [--bg-color BG_COLOR] [--output OUTPUT] [--debug]
-                    bg_bitmap [fg_bitmap]
+                    [bitmaps [bitmaps ...]]
 
 positional arguments:
-  bg_bitmap             The single image or the 1-bit mask
-  fg_bitmap             If given, the 1-bit foreground pixels
+  bitmaps               the bitmaps to create the cursor from
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -29,7 +22,7 @@ optional arguments:
   --bg-color BG_COLOR, -b BG_COLOR
                         The background colour.
   --output OUTPUT, -o OUTPUT
-                        The output file, by default stdout
+                        The output file, by default install
   --debug               Check for consistency and printthe bitmaps to the
                         stdout
 
@@ -41,8 +34,9 @@ various forms of transparency, that can be opened by python imaging).
 The recommended file type is PNG.
 
 There are several modes of operation which are guessed from the
-supplied file:
+supplied files:
 
+*No image is given: create an empty locking cursor.
 *A single colour image with 2 colours and transparency is compiled to
  the appropriate cursor (transparency may either be an alpha threshold
  or single colour transparency).
@@ -58,6 +52,11 @@ Additionally, the cursor hotspot can be given. If not specified, it is the
 center of the image (this is more or less irrelevant, as the all
 cursor events are blocked by pyxtrlock).
 
+If no output file is given the resulting cursor is installed in the
+appropriate location to be found by pyxtrlock (which is
+$XDG_DATA_HOME/pyxtrlock/cursor.json or if XDG_DATA_HOME is not set
+$HOME/.local/share/pyxtrlock/cursor.json).
+
 Typical usage
 -------------
 
@@ -65,10 +64,7 @@ To create a cursor from a PNG with two colors (foreground and
 background) and transparent pixels and then install it for your user
 do the following:
 
-    $ ./make_lock.py lock.png -o lock.pickle
-    $ ./repickle lock.pickle
-    $ mkdir ~/.config/pyxtrlock/
-    $ cp lock.pickle ~/.config/pyxtrlock
+    $ ./make_lock.py lock.png
 
 If the tool fails to grok an image file it may help to use ImageMagick
 to convert it to PNG:
@@ -77,9 +73,8 @@ to convert it to PNG:
 
 Requirements
 ------------
-*Python 2.7
-*Python 3 for repickle.py
-*python-imaging (PIL)
+* Python 3
+* pillow (or PIL)
 
 Bugs
 ----

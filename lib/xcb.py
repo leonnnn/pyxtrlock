@@ -332,10 +332,10 @@ def alloc_color_sync(conn, colormap, r, g, b):
     Raises ``XCBError`` on xcb errors and value errors for invalid
     values of r, g, b.
     """
-    if r < 0 or b < 0 or g < 0:
-        raise ValueError
-    if r > 255 or b > 255 or g > 255:
-        raise ValueError
+    if r < 0 or g < 0 or b < 0:
+        raise ValueError("color component out of range")
+    if r > 255 or g > 255 or b > 255:
+        raise ValueError("color component our of range")
 
     r <<= 8; g <<= 8; b <<= 8
 

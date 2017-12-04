@@ -4,15 +4,14 @@
 import os
 import sys
 import time
-import pickle
 import getpass
 from ctypes import byref, cast, sizeof
 from ctypes import POINTER, c_int, c_uint32, c_char
 
-from xdg.BaseDirectory import xdg_config_home
+from xdg.BaseDirectory import load_data_paths
 import simplepam as pam
 
-import pyxtrlock
+from pyxtrlock.cursor_file import load_cursor
 from pyxtrlock import panic
 try:
     import pyxtrlock.xcb as xcb
@@ -33,18 +32,18 @@ if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
 
 # load cursor data file
 try:
-    f_name = os.path.join(xdg_config_home, "pyxtrlock", "lock.pickle")
-    if os.path.exists(f_name):
-        f = open(f_name, "rb")
+    for directory in load_data_paths("pyxtrlock"):
+        f_name = os.path.join(directory, "cursor.json")
+        if os.path.exists(f_name):
+            with open(f_name, "r") as f:
+                cursor = load_cursor(f)
+            break
     else:
-        f = open(os.path.join(pyxtrlock.data_dir, "lock.pickle"), "rb")
-    cursor = pickle.load(f)
+        from pyxtrlock.default_cursor import DEFAULT_CURSOR as cursor
 except OSError as e:
     panic(e.strerror)
-except pickle.UnpicklingError as e:
-    panic(e.args)
-finally:
-    f.close()
+except Exception as e:
+    panic(str(e))
 
 display = X.create_window(None)
 conn = X.get_xcb_connection(display)
@@ -86,20 +85,17 @@ csr_mask = xcb.image_create_pixmap_from_bitmap_data(conn, window,
                                                     cursor["height"],
                                                     1, 0, 0, None)
 
-if cursor["color_mode"] == "named":
-    csr_bg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
-                                        cursor["bg_color"])
-    csr_fg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
-                                        cursor["fg_color"])
-elif cursor["color_mode"] == "rgb":
+try:
     r, g, b = cursor["bg_color"]
     csr_bg = xcb.alloc_color_sync(conn, screen.default_colormap,
                                   r, g, b)
     r, g, b = cursor["fg_color"]
     csr_fg = xcb.alloc_color_sync(conn, screen.default_colormap,
                                   r, g, b)
-else:
-    panic("Invalid color mode")
+except ValueError as e:
+    panic("pyxtrlock: " + str(e))
+except xcb.XCBError as e:
+    panic("pyxtrlock: Could not allocate colors")
 
 try:
     cursor = xcb.create_cursor_sync(conn, csr_map, csr_mask, csr_fg, csr_bg,

@@ -1,19 +1,20 @@
-#!/usr/bin/python2
-
-from __future__ import division, print_function
+#!/usr/bin/python3
 
 import sys
 import argparse
-import pickle
 import re
 from abc import ABCMeta, abstractmethod
+import os
 
-import Image
+from xdg import BaseDirectory
+
+from PIL import Image, ImageColor
+
+from pyxtrlock.cursor_file import save_cursor
 
 ap = argparse.ArgumentParser()
-ap.add_argument('bg_bitmap', help="The single image or the 1-bit mask")
-ap.add_argument('fg_bitmap', nargs='?',
-                help="If given, the 1-bit foreground pixels")
+ap.add_argument('bitmaps', nargs='*',
+                help="the bitmaps to create the cursor from")
 
 ap.add_argument('--x-hit', '-x', type=int, default=None,
                 help="x-coordinate of the cursor hotspot")
@@ -28,9 +29,9 @@ ap.add_argument('--fg-color', '-f', default=None,
 ap.add_argument('--bg-color', '-b', default=None,
                 help="The background colour.")
 
-ap.add_argument('--output', '-o', type=argparse.FileType('wb'),
-                default=sys.stdout,
-                help="The output file, by default stdout")
+ap.add_argument('--output', '-o', type=argparse.FileType('w'),
+                default=None,
+                help="The output file [default: the data file location]")
 ap.add_argument('--debug', action='store_true', default=False,
                 help="Check for consistency and print"
                 "the bitmaps to stdout")
@@ -155,12 +156,12 @@ class ColorHandlerMeta(ABCMeta):
         else:
             cls._register_recurse(sub_class, marked)
 
-class ColorHandler(object):
-    __metaclass__ = ColorHandlerMeta
+class ColorHandler(metaclass=ColorHandlerMeta):
     MODES = {}
 
-    def __new__(cls, PIL_image, **kwargs):
-        return super(ColorHandler, cls).__new__(cls.MODES[PIL_image.mode], PIL_image)
+    @classmethod
+    def make(cls, PIL_image, **kwargs):
+        return cls.MODES[PIL_image.mode](PIL_image, **kwargs)
 
     def __init__(self, PIL_image, thresh=127):
         self._image = PIL_image
@@ -233,12 +234,9 @@ class FixedPalette(object):
 
 
 class LockMaker(object):
-    RGB_TRIPLE_RE = \
-        r'\s*rgb\s*\(\s*([0-9\.]+)\s*,\s*([0-9\.]+)\s*,\s*([0-9\.]+)\s*\)\s*'
 
     def __init__(self, args):
         self.args = args
-        self.color_mode = None
         self.width = None
         self.height = None
 
@@ -246,11 +244,11 @@ class LockMaker(object):
         self._fg_filter = None
         self._bg_filter = None
 
-        self._bg_bitmap_raw = Image.open(args.bg_bitmap, "r")
+        self._bg_bitmap_raw = Image.open(args.bitmaps[0], "r")
         self._fg_bitmap_raw = None
         self.uni_image = False
-        if args.fg_bitmap is not None:
-            self._fg_bitmap_raw = Image.open(args.fg_bitmap, "r")
+        if len(args.bitmaps) > 1:
+            self._fg_bitmap_raw = Image.open(args.bitmaps[1], "r")
         else:
             self.uni_image = True
 
@@ -322,7 +320,7 @@ class LockMaker(object):
             mode = self._bg_bitmap_raw.mode
             info = self._bg_bitmap_raw.info
 
-            bg_color_handler = ColorHandler(self._bg_bitmap_raw)
+            bg_color_handler = ColorHandler.make(self._bg_bitmap_raw)
             tr_filter = bg_color_handler.make_transparency_filter()
             effective_colors = {}
             for color, num in bg_hist.items():
@@ -362,7 +360,7 @@ class LockMaker(object):
                     f, b = effective_colors
                     image_fg = (f, f, f)
                     image_bg = (b, b, b)
-                    self.fg_filter = lambda x: f
+                    self._fg_filter = lambda x: f
                     self._bg_filter = lambda x: not tr_filter(x)
 
             elif mode == '1':
@@ -396,25 +394,16 @@ class LockMaker(object):
             if self.args.bg_color is None:
                 print("Inconsistent color specification", file=sys.stderr)
                 sys.exit(1)
-            self.fg_color = self._parse_color(self.args.fg_color)
-            self.bg_color = self._parse_color(self.args.bg_color)
+            self.fg_color = ImageColor.getrgb(self.args.fg_color)
+            self.bg_color = ImageColor.getrgb(self.args.bg_color)
         elif image_has_colors:
-            self._check_color_mode('rgb')
             self.fg_color = image_fg
             self.bg_color = image_bg
         else:
             if self.uni_image:
                 self.stroke_border = True
-            self.fg_color = 'white'
-            self.bg_color = 'black'
-            self.color_mode = 'named'
-
-    def _check_color_mode(self, color_mode):
-        if self.color_mode is None:
-            self.color_mode = color_mode
-        elif self.color_mode != color_mode:
-            print("Color mode mismatch", file=sys.stderr)
-            sys.exit(1)
+            self.fg_color = (255,255,255)
+            self.bg_color = (0,0,0)
 
     def _histogram(self, PIL_img):
         hist = {}
@@ -467,51 +456,6 @@ class LockMaker(object):
                 in_img = action(i, j, 1, 0, in_img)
             finish(i, j, in_img)
 
-    def _parse_color(self, color_string):
-        """Parse a string representing a color the formats
-        * rgb(255, 127, 0)
-        * rgb(1.0, 0.5, 0.0)
-        * #f70
-        * #ff7f00
-        * named color
-        """
-        if color_string.startswith('#'):
-            self._check_color_mode('rgb')
-
-            if len(color_string) == 4:
-                return tuple(17*int(color_string[i], base=16)
-                             for i in range(1,4))
-            elif len(color_string) == 7:
-                return tuple(int(color_string[i:i+1], base=16)
-                             for i in range(1,6,2))
-            else:
-                print("Invalid color format", file=sys.stderr)
-                sys.exit(1)
-        else:
-            match = re.match(self.RGB_TRIPLE_RE, color_string)
-            if match is not None:
-                self._check_color_mode('rgb')
-
-                try:
-                    r, g, b = map(int, (match.group(i) for i in range(1, 4)))
-                except ValueError:
-                    try:
-                        r, g, b = map(lambda x: int(float(x)*255),
-                                      (match.group(i) for i in range(1, 4)))
-                    except ValueError:
-                        print("Invalid color format", file=sys.stderr)
-                        sys.exit(1)
-
-                # note: no check for negative values is required as
-                # the regex does not allow -
-                if r > 255 or g > 255 or b > 255:
-                    print("Invalid color format", file=sys.stderr)
-                    sys.exit(1)
-                return (r, g, b)
-
-        self._check_color_mode('named')
-        return color_string
-
     @property
     def fg_bitmap(self):
         return bytes(self._fg_bitmap.buffer)
@@ -523,18 +467,39 @@ class LockMaker(object):
 
 args = ap.parse_args()
 
-lock_maker = LockMaker(args)
+if args.output is None:
+    args.output = open(
+        os.path.join(BaseDirectory.save_data_path("pyxtrlock"),
+                     "cursor.json"),
+        "w"
+    )
 
+if len(args.bitmaps):
+    lock_maker = LockMaker(args)
 
-with args.output as f:
-    pickle.dump({
+    with args.output as f:
+        save_cursor({
             "width": lock_maker.width,
             "height": lock_maker.height,
             "x_hot": lock_maker.x_hot,
             "y_hot": lock_maker.y_hot,
             "fg_bitmap": lock_maker.fg_bitmap,
             "bg_bitmap": lock_maker.bg_bitmap,
-            "color_mode": lock_maker.color_mode,
             "bg_color": lock_maker.bg_color,
             "fg_color": lock_maker.fg_color
-    }, f, protocol=2)
+        }, f)
+else:
+    with args.output as f:
+        fg_bitmap = bytes([0x00])
+        bg_bitmap = bytes([0x00])
+
+        save_cursor({
+            "width": 1,
+            "height": 1,
+            "x_hot": 1,
+            "y_hot": 1,
+            "fg_bitmap": fg_bitmap,
+            "bg_bitmap": bg_bitmap,
+            "bg_color": (0,0,0),
+            "fg_color": (0,0,0)
+        }, f)
