@@ -345,7 +345,7 @@ def alloc_color_sync(conn, colormap, r, g, b):
     if error_p:
         raise XCBERror(error_p.contents)
 
-    ret = (res.contents.red, res.contents.blue, res.contents.green)
+    ret = (res.contents.red, res.contents.green, res.contents.blue)
     free(res)
     return ret
 
