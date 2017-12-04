@@ -1,21 +1,4 @@
-from distutils.core import setup
-from distutils.command.install import install
-
-import os
-import stat
-import subprocess
-
-class my_install(install):
-    def run(self):
-        stat_make_lock = os.stat("make_default_lock.py")
-        try:
-            stat_lock = os.stat("lock.pickle")
-        except OSError:
-            stat_lock = None
-        if stat_lock is None \
-                or stat_lock[stat.ST_MTIME] < stat_make_lock[stat.ST_MTIME]:
-            subprocess.call(["python3", "./make_default_lock.py"])
-        super().run()
+from setuptools import setup
 
 authors = (
     'Leon Weber <leon@leonweber.de>, '
@@ -50,15 +33,12 @@ classifiers = [
 ]
 
 setup(name='pyxtrlock',
-      version='0.2',
+      version='0.3alpha',
       author=authors,
       author_email='leon@leonweber.de',
       requires=['simplepam', 'pyxdg'],
-      package_dir={'pyxtrlock': 'lib'},
-      data_files=[('share/pyxtrlock/', ['lock.pickle'])],
       packages=['pyxtrlock'],
-      scripts=['pyxtrlock'],
-      cmdclass={'install': my_install},
+      scripts=['bin/pyxtrlock'],
       license='GPLv3+',
       url='https://zombofant.net/hacking/pyxtrlock',
       description=desc,

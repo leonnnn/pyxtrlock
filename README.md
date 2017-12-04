@@ -59,9 +59,10 @@ we recommend the ``xautolock`` tool. Just add something like
 to your X autostart file to lock the screen with ``pyxtrlock`` after 5
 minutes idle time. ``xautolock`` has many other useful features, see
 its documentation. Most distributions provide an ``xautolock`` package
-with a man page. An alternative to ``xautolock`` is the use of
-[autolockd](https://github.com/zombofant/autolockd) which also
-monitors for lid close and suspend events.
+with a man page.
+
+An modern alternative to ``xautolock`` is ``xss-lock`` which
+integrates with ``systemd-logind``.
 
 Staying up-to-date
 ------------------
