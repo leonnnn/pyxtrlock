@@ -2,9 +2,17 @@ from ctypes import *
 from pyxtrlock.utils import check_and_load_library
 
 class XCBError(Exception):
+    """Raised on XCBErrors.
+
+    This encapsulates the underlying xcb error object. Note that the
+    xcb error is freed when this object is garbage collected. So you
+    should never copy the xcb_error property.
     """
-    Raised on XCBErrors
-    """
+    def __init__(self, xcb_error):
+        self.xcb_error = xcb_error
+
+    def __del__(self):
+        free(self.xcb_error)
 
 
 class Connection(Structure):
