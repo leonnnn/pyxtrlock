@@ -62,7 +62,17 @@ its documentation. Most distributions provide an ``xautolock`` package
 with a man page.
 
 An modern alternative to ``xautolock`` is ``xss-lock`` which
-integrates with ``systemd-logind``.
+integrates with ``systemd-logind`` and manages locking on idleness and
+lid close events. ``pyxtrlock`` supports the ``XSS_SLEEP_LOCK_FD``
+protocol used by ``xss-lock -l`` to delay system standby until the
+screen is locked, the recommended way to start ``pyxtrlock`` with
+``xss-lock`` is:
+
+    xss-lock -l -- pyxtrlock
+
+to explicitly lock the screen use:
+
+    loginctl lock-session
 
 Staying up-to-date
 ------------------

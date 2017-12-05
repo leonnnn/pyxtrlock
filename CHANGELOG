@@ -6,6 +6,9 @@ Release xxx:
 • Enhancement: Retry grabbing the keyboard as well as the mouse to
   prevent issues when starting pyxtrlock from a keyboard shortcut.
   Patch by Nils Ballmann.
+• Enhancement: Support the XSS_SLEEP_LOCK_FD protocol implemented by
+  xss-lock with the option -l to inhibit standby/hibernate/... until
+  the the screen is locked.
 
 Release 0.2 :
 • Security: Check correctly for the result of the

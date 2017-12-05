@@ -148,6 +148,18 @@ else:
 
 xcb.flush(conn)
 
+# implement the XSS_SLEEP_LOCK_FD sleep delay protocol
+xss_fd = os.getenv("XSS_SLEEP_LOCK_FD")
+if xss_fd is not None:
+    try:
+        os.close(int(xss_fd))
+    except OSError:
+        # ignore if the fd was invalid
+        pass
+    except ValueError:
+        # ignore if the variable did not contain an fd
+        pass
+
 # Prepare X Input
 im = X.open_IM(display, None, None, None)
 if not im:
