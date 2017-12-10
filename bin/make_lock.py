@@ -2,7 +2,6 @@
 
 import sys
 import argparse
-import re
 from abc import ABCMeta, abstractmethod
 import os
 
@@ -36,6 +35,7 @@ ap.add_argument('--debug', action='store_true', default=False,
                 help="Check for consistency and print"
                 "the bitmaps to stdout")
 
+
 class Bitmap(object):
     def __init__(self, width, height, buf=None):
         self.width = width
@@ -53,10 +53,10 @@ class Bitmap(object):
         lines = []
         for i in range(self.height):
             lines.append(''.join(
-                    'o' if bit else '.'
-                    for byte in self.buffer[i*self.pitch:(i+1)*self.pitch]
-                    for bit in ((byte >> j) & 0x1 for j in range(8))
-                    )[:self.width])
+                'o' if bit else '.'
+                for byte in self.buffer[i*self.pitch:(i+1)*self.pitch]
+                for bit in ((byte >> j) & 0x1 for j in range(8))
+            )[:self.width])
         return '\n'.join(lines)
 
     def wipe(self):
@@ -136,6 +136,7 @@ class Bitmap(object):
         cpy |= other
         return cpy
 
+
 class ColorHandlerMeta(ABCMeta):
 
     def __new__(cls, name, bases, dict):
@@ -155,6 +156,7 @@ class ColorHandlerMeta(ABCMeta):
                 cls.MODES[mode] = sub_class
         else:
             cls._register_recurse(sub_class, marked)
+
 
 class ColorHandler(metaclass=ColorHandlerMeta):
     MODES = {}
@@ -205,6 +207,7 @@ class LColorHandler(ColorHandler):
         else:
             return lambda x: False
 
+
 class PColorHander(ColorHandler):
     MODE = ['P']
 
@@ -214,6 +217,7 @@ class PColorHander(ColorHandler):
             return lambda x: transparent_color == x
         else:
             return lambda x: False
+
 
 class OneColorHandler(ColorHandler):
     MODE = ['1']
@@ -230,7 +234,7 @@ class FixedPalette(object):
         self._palette = bytearray(palette.palette)
 
     def __getitem__(self, item):
-        return tuple(self._palette[i] for i in range(3*item, 3*item+3))
+        return tuple(self._palette[i] for i in range(3*item, 3*item + 3))
 
 
 class LockMaker(object):
@@ -251,7 +255,6 @@ class LockMaker(object):
             self._fg_bitmap_raw = Image.open(args.bitmaps[1], "r")
         else:
             self.uni_image = True
-
 
         self._guess_size()
         self._guess_hotspot()
@@ -312,13 +315,10 @@ class LockMaker(object):
 
     def _guess_colors(self):
         image_has_colors = False
-        bg_hist = self._histogram(self._bg_bitmap_raw)
-        if not self.uni_image:
-            fg_hist = self._histogram(self._fg_bitmap_raw)
 
         if self.uni_image:
+            bg_hist = self._histogram(self._bg_bitmap_raw)
             mode = self._bg_bitmap_raw.mode
-            info = self._bg_bitmap_raw.info
 
             bg_color_handler = ColorHandler.make(self._bg_bitmap_raw)
             tr_filter = bg_color_handler.make_transparency_filter()
@@ -371,7 +371,6 @@ class LockMaker(object):
                 sys.exit(1)
         else:
             mode = self._bg_bitmap_raw.mode
-            info = self._bg_bitmap_raw.info
 
             mode_fg = self._fg_bitmap_raw.mode
             if mode_fg != mode:
@@ -402,8 +401,8 @@ class LockMaker(object):
         else:
             if self.uni_image:
                 self.stroke_border = True
-            self.fg_color = (255,255,255)
-            self.bg_color = (0,0,0)
+            self.fg_color = (255, 255, 255)
+            self.bg_color = (0, 0, 0)
 
     def _histogram(self, PIL_img):
         hist = {}
@@ -424,13 +423,13 @@ class LockMaker(object):
         for i in range(self.width):
             for j in range(self.height):
                 if filter(data[i, j]):
-                    bitmap[i,j] = 1
+                    bitmap[i, j] = 1
 
     def _stroke_border(self):
         def action(i, j, di, dj, in_img):
-            if self._bg_bitmap[i,j]:
+            if self._bg_bitmap[i, j]:
                 if not in_img:
-                    self._fg_bitmap[i,j] = 1
+                    self._fg_bitmap[i, j] = 1
                 return True
             else:
                 if in_img:
@@ -441,13 +440,12 @@ class LockMaker(object):
             if in_img:
                 self._fg_bitmap[i, j] = 1
 
-
         # stroke vertically
         for i in range(self.width):
             in_img = False
             for j in range(self.height):
                 in_img = action(i, j, 0, 1, in_img)
-            finish(i, j,  in_img)
+            finish(i, j, in_img)
 
         # stroke horizontally
         for j in range(self.height):
@@ -500,6 +498,6 @@ else:
             "y_hot": 1,
             "fg_bitmap": fg_bitmap,
             "bg_bitmap": bg_bitmap,
-            "bg_color": (0,0,0),
-            "fg_color": (0,0,0)
+            "bg_color": (0, 0, 0),
+            "fg_color": (0, 0, 0)
         }, f)

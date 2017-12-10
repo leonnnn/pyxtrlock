@@ -9,6 +9,7 @@ BINARY_ATTRIBUTES = ["fg_bitmap", "bg_bitmap"]
 
 MAX_CURSOR_SIZE = 512
 
+
 def _check_size(w, h, data):
     pitch = (w + 7) // 8
     size = pitch * h
@@ -45,7 +46,7 @@ def load_cursor(f):
     res = {}
 
     for attr in INTEGER_ATTRIBUTES:
-        if not (isinstance(cursor[attr], int)  and
+        if not (isinstance(cursor[attr], int) and
                 0 <= cursor[attr] <= MAX_CURSOR_SIZE):
             raise ValueError("{} must be integer".format(attr))
         res[attr] = cursor[attr]

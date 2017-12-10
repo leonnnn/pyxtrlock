@@ -5,7 +5,7 @@ import os
 import sys
 import time
 import getpass
-from ctypes import byref, cast, sizeof
+from ctypes import byref, cast
 from ctypes import POINTER, c_int, c_uint32, c_char
 
 from xdg.BaseDirectory import load_data_paths
@@ -116,8 +116,10 @@ xcb.map_window(conn, window)
 
 for i in range(100):
     try:
-        status = xcb.grab_keyboard_sync(conn, 0, window, xcb.CURRENT_TIME,
-                                        xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
+        status = xcb.grab_keyboard_sync(conn, 0, window,
+                                        xcb.CURRENT_TIME,
+                                        xcb.GRAB_MODE_ASYNC,
+                                        xcb.GRAB_MODE_ASYNC)
 
         if status == xcb.GrabSuccess:
             break

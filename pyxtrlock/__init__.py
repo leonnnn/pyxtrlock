@@ -1,6 +1,5 @@
 
 import sys
-import os
 
 
 def panic(*message_parts, exit_code=1):
