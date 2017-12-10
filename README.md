@@ -96,29 +96,31 @@ Although this is not a bug, please note that pyxtrlock does not
 prevent a user from switching to a virtual terminal, so be advised to
 always log out from your terminals.
 
-The lenght of the password is limited to 100 KiB to prevent memory
+The length of the password is limited to 100 KiB to prevent memory
 exhaustion attacks. This limit can only be adapted in the source code.
+
+The width and height of the cursor bitmaps is limited to 512 pixels
+(primarily to protect the user from faulty cursor files). This limit
+can be only adapted in the source code.
 
 Please report any new bugs you may find to our
 [Github issue tracker](https://github.com/leonnnn/pyxtrlock/issues).
 
 Configuration
 -------------
-The padlock icon can be changed. It is stored as a
-[pickle](http://docs.python.org/3/library/pickle.html) of a
-dictionary, and the ``tools`` directory contains a tool for generating
-cursors from image files.
+The padlock icon can be changed. While the default lock is stored in
+the source code, an alternative lock can be stored in one of the the
+xdg data paths for pyxtrlock.
 
-The default cursor file is placed at
-``PREFIX/share/pyxtrlock/lock.pickle`` while the cursor file at
-``~/.config/pyxtrlock/lock.pickle`` takes precedence if present.
+The user configured lock is stored as a json file containing the
+necessary information. ``bin/make_lock.py`` is a tool for generating
+cursors from image files. See ``doc/make_lock.txt`` for the full
+documentation of the tool.
 
-*PLEASE NOTE:* The ``pickle`` file format is not designed to be
-resistant against maliciously crafted files. Therfore do not open
-``pickle`` files from untrusted sources as they may compromise your
-system. The default padlock file is created on install (by
-``make_default_lock.py``). In case you do not want to see any kind
-of cursor, an empty one can be created using ``make_empty_lock.py``.
+Note, that even though loading json does not allow arbitrary code
+execution and the cursor data is checked for consistency, cursor files
+should be created on your machine and should not be installed from
+untrusted sources.
 
 Requirements
 ------------
