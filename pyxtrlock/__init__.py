@@ -3,7 +3,7 @@ import sys
 import os
 
 
-def panic(message, exit_code=1):
+def panic(*message_parts, exit_code=1):
     """Print an error message to stderr and exit"""
-    print(message, file=sys.stderr)
+    print("pyxtrlock:", *message_parts, file=sys.stderr)
     sys.exit(exit_code)
