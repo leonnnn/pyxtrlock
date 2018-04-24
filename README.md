@@ -4,7 +4,7 @@ pyxtrlock
 ``pyxtrlock`` is a rewrite of Ian Jackson's great ``xtrlock`` program using
 modern libraries, most importantly the obsolete direct passwd/shadow
 authentication has been replaced by today's
-[PAM](http://en.wikipedia.org/wiki/Pluggabe_authentication_module) authentication
+[PAM](https://en.wikipedia.org/wiki/Pluggable_authentication_module) authentication
 mechanism, hence it also works on Fedora. Also, it's mostly written using
 [XCB](http://xcb.freedesktop.org/) instead of Xlib, although some Xlib/XCB
 interaction is still necessary. As soon as XCB can provide the required
@@ -38,6 +38,9 @@ dependencies:
     $ cd python3-simplepam
     $ sudo python3 setup.py install
 
+Install pyxdg, which is available as python3-pyxdg or similar in most Linux
+distributions.
+
 Clone and install pyxtrlock:
 
     $ git clone git://github.com/leonnnn/pyxtrlock.git
@@ -56,9 +59,34 @@ we recommend the ``xautolock`` tool. Just add something like
 to your X autostart file to lock the screen with ``pyxtrlock`` after 5
 minutes idle time. ``xautolock`` has many other useful features, see
 its documentation. Most distributions provide an ``xautolock`` package
-with a man page. An alternative to ``xautolock`` is the use of
-[autolockd](https://github.com/zombofant/autolockd) which also
-monitors for lid close and suspend events.
+with a man page.
+
+An modern alternative to ``xautolock`` is ``xss-lock`` which
+integrates with ``systemd-logind`` and manages locking on idleness and
+lid close events. ``pyxtrlock`` supports the ``XSS_SLEEP_LOCK_FD``
+protocol used by ``xss-lock -l`` to delay system standby until the
+screen is locked, the recommended way to start ``pyxtrlock`` with
+``xss-lock`` is:
+
+    xss-lock -l -- pyxtrlock
+
+to explicitly lock the screen use:
+
+    loginctl lock-session
+
+Staying up-to-date
+------------------
+As pyxtrlock is a security tool, it is important to stay up-to-date with
+security updates. We take security seriously and try to handle any
+vulnerabilities quickly. However, our efforts are useless if the users
+aren’t notified that updates are available, so if you use pyxtrlock, we
+urge you to subscribe to
+[the pyxtrlock mailing list](http://lists.zombofant.net/mailman/listinfo/pyxtrlock).
+This list is likely very low traffic and will ensure you get
+notifications of security updates in time.
+
+We also appreciate any feedback you have regarding pyxtrlock on this
+mailing list.
 
 Bugs & Limitations
 ------------------
@@ -68,32 +96,36 @@ Although this is not a bug, please note that pyxtrlock does not
 prevent a user from switching to a virtual terminal, so be advised to
 always log out from your terminals.
 
-The lenght of the password is limited to 100 KiB to prevent memory
+The length of the password is limited to 100 KiB to prevent memory
 exhaustion attacks. This limit can only be adapted in the source code.
+
+The width and height of the cursor bitmaps is limited to 512 pixels
+(primarily to protect the user from faulty cursor files). This limit
+can be only adapted in the source code.
 
 Please report any new bugs you may find to our
 [Github issue tracker](https://github.com/leonnnn/pyxtrlock/issues).
 
 Configuration
 -------------
-The padlock icon can be changed. It is stored as a
-[pickle](http://docs.python.org/3/library/pickle.html) of a
-dictionary, and the ``tools`` directory contains a tool for generating
-cursors from image files.
+The padlock icon can be changed. While the default lock is stored in
+the source code, an alternative lock can be stored in one of the the
+xdg data paths for pyxtrlock.
 
-The default cursor file is placed at
-``PREFIX/share/pyxtrlock/lock.pickle`` while the cursor file at
-``~/.config/pyxtrlock/lock.pickle`` takes precedence if present.
+The user configured lock is stored as a json file containing the
+necessary information. ``bin/make_lock.py`` is a tool for generating
+cursors from image files. See ``doc/make_lock.txt`` for the full
+documentation of the tool.
 
-*PLEASE NOTE:* The ``pickle`` file format is not designed to be
-resistant against maliciously crafted files. Therfore do not open
-``pickle`` files from untrusted sources as they may compromise your
-system. The default padlock file is created on install (by
-``make_default_lock.py``).
+Note, that even though loading json does not allow arbitrary code
+execution and the cursor data is checked for consistency, cursor files
+should be created on your machine and should not be installed from
+untrusted sources.
 
 Requirements
 ------------
 * [python3-simplepam](https://github.com/leonnnn/python3-simplepam)
+* [pyxdg](http://freedesktop.org/Software/pyxdg)
 * Python ≥ 3.0
 * libxcb
 * libxcb-image

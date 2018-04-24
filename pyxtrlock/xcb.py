@@ -1,10 +1,19 @@
 from ctypes import *
 from pyxtrlock.utils import check_and_load_library
 
+
 class XCBError(Exception):
+    """Raised on XCBErrors.
+
+    This encapsulates the underlying xcb error object. Note that the
+    xcb error is freed when this object is garbage collected. So you
+    should never copy the xcb_error property.
     """
-    Raised on XCBErrors
-    """
+    def __init__(self, xcb_error):
+        self.xcb_error = xcb_error
+
+    def __del__(self):
+        free(self.xcb_error)
 
 
 class Connection(Structure):
@@ -78,6 +87,7 @@ class Cookie(Structure):
         ("sequence", c_uint)
     ]
 
+
 VoidCookie = Cookie
 AllocNamedColorCookie = Cookie
 AllocColorCookie = Cookie
@@ -108,6 +118,7 @@ class AllocNamedColorReply(Structure):
         ("visual_green", c_uint16),
         ("visual_blue", c_uint16)
     ]
+
 
 class AllocColorReply(Structure):
     _fields_ = [
@@ -159,6 +170,7 @@ class GrabReply(Structure):
                                ','.join(str(getattr(self, field))
                                         for field, _ in self._fields_))
 
+
 class GenericEvent(Structure):
     _fields_ = [
         ("response_type", c_uint8),
@@ -168,8 +180,10 @@ class GenericEvent(Structure):
         ("full_sequence", c_uint32)
     ]
 
+
 Keycode = c_uint8
 Timestamp = c_uint32
+
 
 class KeyPressEvent(Structure):
     _fields_ = [
@@ -188,7 +202,6 @@ class KeyPressEvent(Structure):
         ("same_screen", c_uint8),
         ("pad0", c_uint8)
     ]
-
 
 
 GrabKeyboardReply = GrabReply
@@ -313,6 +326,7 @@ def alloc_named_color_sync(conn, colormap, color_string):
     free(res)
     return ret
 
+
 def alloc_color_sync(conn, colormap, r, g, b):
     """Synchronously allocate a color
 
@@ -324,10 +338,10 @@ def alloc_color_sync(conn, colormap, r, g, b):
     Raises ``XCBError`` on xcb errors and value errors for invalid
     values of r, g, b.
     """
-    if r < 0 or b < 0 or g < 0:
-        raise ValueError
-    if r > 255 or b > 255 or g > 255:
-        raise ValueError
+    if r < 0 or g < 0 or b < 0:
+        raise ValueError("color component out of range")
+    if r > 255 or g > 255 or b > 255:
+        raise ValueError("color component our of range")
 
     r <<= 8; g <<= 8; b <<= 8
 
@@ -337,9 +351,10 @@ def alloc_color_sync(conn, colormap, r, g, b):
     if error_p:
         raise XCBERror(error_p.contents)
 
-    ret = (res.contents.red, res.contents.blue, res.contents.green)
+    ret = (res.contents.red, res.contents.green, res.contents.blue)
     free(res)
     return ret
+
 
 request_check = libxcb.xcb_request_check
 request_check.argtypes = [POINTER(Connection), VoidCookie]
@@ -379,13 +394,16 @@ def create_cursor_sync(conn, source, mask, fg, bg, x, y):
 
     return cursor
 
+
 map_window = libxcb.xcb_map_window
 map_window.argtypes = [POINTER(Connection), Window]
 map_window.restype = VoidCookie
 
+
 flush = libxcb.xcb_flush
 flush.argtypes = [POINTER(Connection)]
 flush.restype = c_int
+
 
 grab_keyboard = libxcb.xcb_grab_keyboard
 grab_keyboard.argtypes = [
@@ -397,6 +415,7 @@ grab_keyboard.argtypes = [
     c_uint8     # keyboard_mode
 ]
 grab_keyboard.restype = GrabKeyboardCookie
+
 
 grab_keyboard_reply = libxcb.xcb_grab_keyboard_reply
 grab_keyboard_reply.argtypes = [
@@ -451,12 +470,14 @@ grab_pointer_reply.argtypes = [
 ]
 grab_pointer_reply.restype = POINTER(GrabPointerReply)
 
+
 # constants to interpret grab results
 GrabSuccess = 0
 AlreadyGrabbed = 1
 GrabInvalidTime = 2
 GrabNotViewable = 3
 GrabFrozen = 4
+
 
 def grab_pointer_sync(conn, owner_events, window, event_mask, ptr_mode,
                       kbd_mode, confine_to, cursor, timestamp):
@@ -478,13 +499,16 @@ def grab_pointer_sync(conn, owner_events, window, event_mask, ptr_mode,
     free(ptr_grab)
     return status
 
+
 wait_for_event_ = libxcb.xcb_wait_for_event
 wait_for_event_.argtypes = [POINTER(Connection)]
 wait_for_event_.restype = POINTER(GenericEvent)
 
+
 free = libc.free
 free.argtypes = [c_void_p]
 free.restype = None
+
 
 class FreeWrapper(object):
 
@@ -500,6 +524,14 @@ class FreeWrapper(object):
 
 def wait_for_event(conn):
     return FreeWrapper(wait_for_event_(conn))
+
+
+connection_has_error = libxcb.xcb_connection_has_error
+connection_has_error.restype = c_int
+connection_has_error.argtypes = [
+    POINTER(Connection),
+]
+
 
 # xcb_image
 image_create_pixmap_from_bitmap_data = \

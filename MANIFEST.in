@@ -1,3 +1,2 @@
 include COPYING CHANGELOG README.md
-include tools/*.py tools/README
-include make_default_lock.py
+include bin/make_lock.py doc/make_lock.txt

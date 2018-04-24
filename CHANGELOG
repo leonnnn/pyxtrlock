@@ -1,6 +1,18 @@
+Release xxx:
+• Enhancement: Make pyxtrlock conform to the XDG specification. Patch by
+  Cristian Ciupitu.
+• Enhancement: Ship script to create an empty lock symbol. Patch by Alexander
+  Klink.
+• Enhancement: Retry grabbing the keyboard as well as the mouse to
+  prevent issues when starting pyxtrlock from a keyboard shortcut.
+  Patch by Nils Ballmann.
+• Enhancement: Support the XSS_SLEEP_LOCK_FD protocol implemented by
+  xss-lock with the option -l to inhibit standby/hibernate/... until
+  the the screen is locked.
+
 Release 0.2 :
 • Security: Check correctly for the result of the
-  xcb_grab_{pointer,keyboard} commands
+  xcb_grab_{pointer,keyboard} commands (CVE-2013-4427).
 • Security: Limit length of buffered password to prevent memory exhaustion
   (this is a real concern when attacked with custom hardware which
   simulates most rapid keystrokes)
@@ -11,4 +23,4 @@ Release 0.2 :
 Release 0.1:
 • [#8] Security: Fixed a typo that could in some circumstances lead to a
        crash after multiple failed authentication attempts. Thanks,
-       Paul Lhussiez.
+       Paul Lhussiez (CVE-2013-4426).

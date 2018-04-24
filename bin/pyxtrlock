@@ -4,14 +4,14 @@
 import os
 import sys
 import time
-import pickle
 import getpass
-from ctypes import byref, cast, sizeof
+from ctypes import byref, cast
 from ctypes import POINTER, c_int, c_uint32, c_char
 
+from xdg.BaseDirectory import load_data_paths
 import simplepam as pam
 
-import pyxtrlock
+from pyxtrlock.cursor_file import load_cursor
 from pyxtrlock import panic
 try:
     import pyxtrlock.xcb as xcb
@@ -25,31 +25,31 @@ except ImportError as err:
 
 if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
     msg = (
-        "pyxtrlock: refusing to run as root. Use -f to force. Warning: "
+        "refusing to run as root. Use -f to force. Warning: "
         "Your PAM configuration may deny unlocking as root."
     )
     panic(msg)
 
 # load cursor data file
 try:
-    f_name = os.path.expanduser("~/.config/pyxtrlock/lock.pickle")
-    if os.path.exists(f_name):
-        f = open(f_name, "rb")
+    for directory in load_data_paths("pyxtrlock"):
+        f_name = os.path.join(directory, "cursor.json")
+        if os.path.exists(f_name):
+            with open(f_name, "r") as f:
+                cursor = load_cursor(f)
+            break
     else:
-        f = open(os.path.join(pyxtrlock.data_dir, "lock.pickle"), "rb")
-    cursor = pickle.load(f)
+        from pyxtrlock.default_cursor import DEFAULT_CURSOR as cursor
 except OSError as e:
-    panic(e.strerror)
-except pickle.UnpicklingError as e:
-    panic(e.args)
-finally:
-    f.close()
+    panic("error reading cursor:", e.strerror)
+except Exception as e:
+    panic("error reading cursor:", str(e))
 
 display = X.create_window(None)
 conn = X.get_xcb_connection(display)
 
 if not display:
-    panic("pyxtrlock: Could not connect to X server")
+    panic("Could not connect to X server")
 
 screen_num = c_int()
 
@@ -85,47 +85,52 @@ csr_mask = xcb.image_create_pixmap_from_bitmap_data(conn, window,
                                                     cursor["height"],
                                                     1, 0, 0, None)
 
-if cursor["color_mode"] == "named":
-    csr_bg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
-                                        cursor["bg_color"])
-    csr_fg = xcb.alloc_named_color_sync(conn, screen.default_colormap,
-                                        cursor["fg_color"])
-elif cursor["color_mode"] == "rgb":
+try:
     r, g, b = cursor["bg_color"]
     csr_bg = xcb.alloc_color_sync(conn, screen.default_colormap,
                                   r, g, b)
     r, g, b = cursor["fg_color"]
     csr_fg = xcb.alloc_color_sync(conn, screen.default_colormap,
                                   r, g, b)
-else:
-    panic("Invalid color mode")
+except ValueError as e:
+    panic(str(e))
+except xcb.XCBError as e:
+    panic("Could not allocate colors")
 
 try:
     cursor = xcb.create_cursor_sync(conn, csr_map, csr_mask, csr_fg, csr_bg,
                                     cursor["x_hot"], cursor["y_hot"])
 except xcb.XCBError as e:
-    panic("pyxtrlock: Could not create cursor")
+    panic("Could not create cursor")
 
 # map window
 xcb.map_window(conn, window)
 
 # Grab keyboard
-try:
-    status = xcb.grab_keyboard_sync(conn, 0, window, xcb.CURRENT_TIME,
-                                    xcb.GRAB_MODE_ASYNC, xcb.GRAB_MODE_ASYNC)
-
-    if status != xcb.GrabSuccess:
-        panic("pyxtrlock: Could not grab keyboard")
-except xcb.XCBError as e:
-    panic("pyxtrlock: Could not grab keyboard")
-
-# Grab pointer
 # Use the method from the original xtrlock code:
 #  "Sometimes the WM doesn't ungrab the keyboard quickly enough if
 #  launching xtrlock from a keystroke shortcut, meaning xtrlock fails
 #  to start We deal with this by waiting (up to 100 times) for 10,000
 #  microsecs and trying to grab each time. If we still fail
 #  (i.e. after 1s in total), then give up, and emit an error"
+
+for i in range(100):
+    try:
+        status = xcb.grab_keyboard_sync(conn, 0, window,
+                                        xcb.CURRENT_TIME,
+                                        xcb.GRAB_MODE_ASYNC,
+                                        xcb.GRAB_MODE_ASYNC)
+
+        if status == xcb.GrabSuccess:
+            break
+        else:
+            time.sleep(0.01)
+    except xcb.XCBError as e:
+        time.sleep(0.01)
+else:
+    panic("Could not grab keyboard")
+
+# Grab pointer
 for i in range(100):
     try:
         status = xcb.grab_pointer_sync(conn, False, window, 0,
@@ -141,19 +146,31 @@ for i in range(100):
     except xcb.XCBError as e:
         time.sleep(0.01)
 else:
-    panic("pyxtrlock: Could not grab pointing device")
+    panic("Could not grab pointing device")
 
 xcb.flush(conn)
+
+# implement the XSS_SLEEP_LOCK_FD sleep delay protocol
+xss_fd = os.getenv("XSS_SLEEP_LOCK_FD")
+if xss_fd is not None:
+    try:
+        os.close(int(xss_fd))
+    except OSError:
+        # ignore if the fd was invalid
+        pass
+    except ValueError:
+        # ignore if the variable did not contain an fd
+        pass
 
 # Prepare X Input
 im = X.open_IM(display, None, None, None)
 if not im:
-    panic("pyxtrlock: Could not open Input Method")
+    panic("Could not open Input Method")
 
 ic = X.create_IC(im, X.N_INPUT_STYLE,
                  X.IM_PRE_EDIT_NOTHING | X.IM_STATUS_NOTHING, None)
 if not ic:
-    panic("pyxtrlock: Could not open Input Context")
+    panic("Could not open Input Context")
 
 X.set_ic_focus(ic)
 
@@ -173,6 +190,17 @@ timeout = 0
 goodwill = INITIALGOODWILL
 while True:
     with xcb.wait_for_event(conn) as event:
+        if not event:
+            # this test should always be true, we have it here as an
+            # extra precaution, so we do not kill pyxtrlock if there
+            # still is a connection to the X server (although
+            # wait_for_event should never return None in that case)
+            if xcb.connection_has_error(conn):
+                # prevent looping if the server connection breaks
+                break
+            else:
+                continue
+
         if event.contents.response_type == xcb.KEY_PRESS:
             xcb_key_press_event = cast(event,
                                        POINTER(xcb.KeyPressEvent)).contents
