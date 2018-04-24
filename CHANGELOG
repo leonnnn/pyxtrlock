@@ -1,4 +1,6 @@
 Release xxx:
+
+Release 0.3:
 • Enhancement: Make pyxtrlock conform to the XDG specification. Patch by
   Cristian Ciupitu.
 • Enhancement: Ship script to create an empty lock symbol. Patch by Alexander
