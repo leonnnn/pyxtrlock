@@ -33,7 +33,7 @@ classifiers = [
 ]
 
 setup(name='pyxtrlock',
-      version='0.3alpha',
+      version='0.3',
       author=authors,
       author_email='leon@leonweber.de',
       requires=['simplepam', 'pyxdg'],
