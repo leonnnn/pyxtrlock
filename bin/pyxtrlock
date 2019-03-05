@@ -13,6 +13,7 @@ import simplepam as pam
 
 from pyxtrlock.cursor_file import load_cursor
 from pyxtrlock import panic
+from pyxtrlock import detect_wayland_session
 try:
     import pyxtrlock.xcb as xcb
 except ImportError as err:
@@ -22,6 +23,8 @@ try:
     import pyxtrlock.X as X
 except ImportError as err:
     panic(err)
+
+detect_wayland_session()
 
 if getpass.getuser() == 'root' and sys.argv[1:] != ['-f']:
     msg = (
