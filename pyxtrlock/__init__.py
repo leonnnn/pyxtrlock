@@ -12,7 +12,7 @@ def panic(*message_parts, exit_code=1):
     sys.exit(exit_code)
 
 
-def detect_wayland_session():
+def require_x11_session():
     """
     Detect whether we're running in a Wayland session and abort if so.
     """
