@@ -33,14 +33,14 @@ classifiers = [
 ]
 
 setup(name='pyxtrlock',
-      version='0.3',
+      version='0.4',
       author=authors,
       author_email='leon@leonweber.de',
       requires=['simplepam', 'pyxdg'],
       packages=['pyxtrlock'],
       scripts=['bin/pyxtrlock'],
       license='GPLv3+',
-      url='https://zombofant.net/hacking/pyxtrlock',
+      url='https://github.com/leonnnn/pyxtrlock',
       description=desc,
       long_description=long_desc,
       classifiers=classifiers

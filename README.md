@@ -90,11 +90,14 @@ mailing list.
 
 Bugs & Limitations
 ------------------
-Additional input devices other than the keyboard and mouse are not disabled.
+Pyxtrlock can only securely lock X11 sessions. Running pyxtrlock in other
+session types, such as Wayland, is insecure and not supported. Pyxtrlock tries
+to detect Wayland sessions and abort with an error message.
 
-Although this is not a bug, please note that pyxtrlock does not
-prevent a user from switching to a virtual terminal, so be advised to
-always log out from your terminals.
+Pyxtrlock does not prevent a user from switching to a virtual
+terminal, so be advised to always log out from your terminals.
+
+Additional input devices other than the keyboard and mouse are not disabled.
 
 The length of the password is limited to 100 KiB to prevent memory
 exhaustion attacks. This limit can only be adapted in the source code.
