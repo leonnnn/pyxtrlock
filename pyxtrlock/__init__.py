@@ -26,6 +26,12 @@ def require_x11_session():
             "Using pyxtrlock in a Wayland session is insecure. Aborting."
         )
 
+    if os.environ.get("WAYLAND_SOCKET"):
+        panic(
+            "WAYLAND_SOCKET is set, suspecting Wayland session. "
+            "Using pyxtrlock in a Wayland session is insecure. Aborting."
+        )
+
     xdg_runtime_dir = get_runtime_dir(strict=True)
     wayland_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
 
