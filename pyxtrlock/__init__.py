@@ -32,6 +32,8 @@ def require_x11_session():
     try:
         wayland_socket.connect(os.path.join(xdg_runtime_dir, "wayland-0"))
     except OSError:
+        return
+    else:
         panic(
             "Successfully connected to Wayland socket, suspecting Wayland session. "
             "Using pyxtrlock in a Wayland session is insecure. Aborting."
