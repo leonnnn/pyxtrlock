@@ -1,4 +1,6 @@
-Release xxx:
+Release 0.4:
+• Security: Refuse to run if wayland session is detected. Running in a wayland
+  is insecure.
 
 Release 0.3:
 • Enhancement: Make pyxtrlock conform to the XDG specification. Patch by
