@@ -1,3 +1,18 @@
+Warning
+=======
+Please note that pyxtrlock is **deprecated**, **unmaintained** and **insecure!**
+
+There is at least one known vulnerability, which is that on Wayland systems, only
+X applications are locked, while pyxtrlock gives the impression to lock all
+applications.
+
+Therefore, we do not recommend to use pyxtrlock on Wayland systems.
+
+However, we do not intend to develop pyxtrlock any further. This includes fixes
+for any vulnerabilities that may be discovered in the future.
+
+Therefore, we do not recommend to use pyxtrlock on any systems.
+
 pyxtrlock
 =========
 
